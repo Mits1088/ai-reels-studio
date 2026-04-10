@@ -1,0 +1,64 @@
+{
+  "assets": [
+    {
+      "id": "avatar-talking-head",
+      "filename": "avatar-talking-head.mp4",
+      "type": "video",
+      "role": "avatar",
+      "linked_beats": ["beat-01", "beat-04"],
+      "description": "HeyGen avatar talking head for hook and CTA",
+      "scene": null,
+      "duration_s": 14.5,
+      "dimensions": { "w": 1080, "h": 1920 },
+      "source": "import"
+    },
+    {
+      "id": "demo-deploy-button",
+      "filename": "deploy-button-screenshot.png",
+      "type": "image",
+      "role": "demo",
+      "linked_beats": ["beat-03"],
+      "description": "Screenshot of deploy button UI for demo beat",
+      "scene": 2,
+      "duration_s": null,
+      "dimensions": { "w": 1080, "h": 1920 },
+      "source": "capture"
+    },
+    {
+      "id": "support-success-anim",
+      "filename": "success-animation.mp4",
+      "type": "video",
+      "role": "support",
+      "linked_beats": ["beat-04"],
+      "description": "Success animation overlay for CTA reinforcement",
+      "scene": 3,
+      "duration_s": 2.5,
+      "dimensions": { "w": 1080, "h": 1920 },
+      "source": "import"
+    },
+    {
+      "id": "sfx-whoosh",
+      "filename": "whoosh.mp3",
+      "type": "sfx",
+      "role": "sfx",
+      "linked_beats": ["beat-03"],
+      "description": "Whoosh sound effect for deploy button click emphasis",
+      "scene": null,
+      "duration_s": 0.52,
+      "dimensions": null,
+      "source": "import"
+    },
+    {
+      "id": "music-bg-upbeat",
+      "filename": "bg-music-upbeat.mp3",
+      "type": "music",
+      "role": "music",
+      "linked_beats": ["beat-01", "beat-02", "beat-03", "beat-04"],
+      "description": "Upbeat background music track, sits below voice",
+      "scene": null,
+      "duration_s": 14.5,
+      "dimensions": null,
+      "source": "import"
+    }
+  ]
+}

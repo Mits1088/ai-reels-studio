@@ -1,0 +1,45 @@
+{
+  "_comment": "Define what demo content to capture for each beat. Stage 2 = manual user captures from logged-in browser session.",
+  "project": "google-stitch",
+  "stage": 2,
+  "viewport": "540x960 portrait for video; landscape/full-canvas for screenshots",
+  "demos": [
+    {
+      "id": "stitch-canvas-multiscreen",
+      "beat_id": ["beat-03a", "beat-03b"],
+      "intent": "proof",
+      "type": "video or screenshot",
+      "target_asset": "projects/google-stitch/assets/demo-stitch-multiscreen.png",
+      "capture_notes": "Screenshot or screen recording of Stitch canvas showing 5 generated app screens from one prompt. Must show: 5 distinct screens with consistent fonts, colors, components. If video: show prompt → generation → 5 screens appearing. If screenshot: full canvas with all 5 screens clearly visible. Crop browser chrome.",
+      "example_prompt": "A fitness tracking app with dashboard, workout log, progress charts, profile, and settings screens",
+      "_note": "HERO PROOF asset. The viewer must see 5 connected screens at once. This is the visual payoff for 'not one screen — FIVE connected screens'."
+    },
+    {
+      "id": "stitch-code-export",
+      "beat_id": ["beat-04", "beat-05"],
+      "intent": "proof",
+      "type": "screenshot",
+      "target_asset": "projects/google-stitch/assets/demo-stitch-code-export.png",
+      "capture_notes": "Screenshot of the code export panel or dialog. Must show framework options: React, Tailwind CSS, Flutter, SwiftUI visible. If a code preview is visible, include it. Crop browser chrome.",
+      "_note": "Proof that 'these aren't just mockups — it exports real code'. Framework names must be readable."
+    },
+    {
+      "id": "figma-stock-chart",
+      "beat_id": "beat-01",
+      "intent": "hook",
+      "type": "screenshot",
+      "target_asset": "projects/google-stitch/assets/demo-figma-stock.png",
+      "capture_notes": "Screenshot of Figma stock price chart (Google Finance or similar) showing decline around March 2026. Clean chart with clear downward trend visible. No personal portfolio data. Crop browser chrome.",
+      "_note": "Hook support visual. Backs up 'Stop paying for Figma — Google just made it FREE'."
+    },
+    {
+      "id": "stitch-free-tier",
+      "beat_id": "beat-06",
+      "intent": "trust",
+      "type": "screenshot",
+      "target_asset": "projects/google-stitch/assets/demo-stitch-free.png",
+      "capture_notes": "Screenshot of Stitch sign-in page or pricing/usage indicator showing free access. Must show Google account sign-in or '350 generations' limit visible. No personal data. Crop browser chrome.",
+      "_note": "Trust beat visual. Shows no paywall, no credit card — just Google account."
+    }
+  ]
+}

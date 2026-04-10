@@ -1,0 +1,9 @@
+{
+  "_comment": "Timestamps (seconds) at which to extract frames from each broll video for zoom calibration.",
+  "_usage": "node lib/capture/extract-frames.js",
+  "_formula": "After extraction: frame_x = image_x, frame_y = image_y * 0.57 (contain+top letterbox offset)",
+
+  "broll-el10.mp4": [0.8, 3.8],
+  "broll-humanize.mp4": [0.6, 2.8],
+  "broll-humanize-result.mp4": [0.8, 2.5]
+}

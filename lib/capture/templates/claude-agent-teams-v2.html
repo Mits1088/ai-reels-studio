@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Claude Code Agent Teams v2</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    font-family: 'Cascadia Code', 'Fira Code', 'SF Mono', 'Courier New', monospace;
+    color: #e0e0e0;
+    overflow: hidden;
+  }
+
+  .header {
+    background: #0f0f1a;
+    padding: 16px 24px;
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .header .title { color: #D97757; font-weight: bold; font-size: 22px; }
+  .header .team-badge {
+    background: #D97757;
+    color: #fff;
+    padding: 6px 16px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── SPAWN PROMPT (landscape) ── */
+  .spawn-content {
+    padding: 40px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .spawn-path { font-size: 18px; color: #666; }
+  .spawn-cmd {
+    font-size: 24px;
+    line-height: 1.5;
+  }
+  .spawn-cmd .prompt { color: #D97757; }
+  .spawn-result {
+    font-size: 22px;
+    line-height: 1.6;
+  }
+  .spawn-result .check { color: #4ade80; }
+  .spawn-result .name { color: #D97757; font-weight: bold; }
+  .spawn-result .arrow { color: #93c5fd; }
+  .spawn-teammate {
+    font-size: 20px;
+    color: #ccc;
+    line-height: 1.8;
+  }
+  .spawn-active {
+    font-size: 20px;
+    color: #4ade80;
+    margin-top: 8px;
+  }
+
+  /* ── TASK LIST (landscape) ── */
+  .tasklist-content {
+    padding: 32px;
+  }
+  .tasklist-title {
+    font-size: 24px;
+    color: #D97757;
+    font-weight: bold;
+    margin-bottom: 24px;
+  }
+  .task-row {
+    font-size: 22px;
+    line-height: 2.4;
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+  }
+  .task-row .done { color: #4ade80; font-size: 24px; }
+  .task-row .wip { color: #fbbf24; font-size: 24px; }
+  .task-row .pending { color: #555; font-size: 24px; }
+  .task-row .label { color: #e0e0e0; }
+  .task-row .owner { color: #93c5fd; font-size: 18px; margin-left: 8px; }
+
+  /* ── TEAM PANES (landscape, horizontal layout) ── */
+  .team-horizontal {
+    display: flex;
+    height: calc(100% - 60px);
+    gap: 2px;
+  }
+  .h-pane {
+    flex: 1;
+    padding: 20px 16px;
+    border-right: 1px solid #333;
+    overflow: hidden;
+  }
+  .h-pane:last-child { border-right: none; }
+  .h-pane-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    font-size: 16px;
+  }
+  .h-pane-name { color: #D97757; font-weight: bold; font-size: 18px; }
+  .h-pane-status { color: #4ade80; font-size: 16px; }
+  .h-pane-status.working { color: #fbbf24; }
+  .h-pane-line {
+    font-size: 15px;
+    line-height: 1.8;
+    color: #ccc;
+  }
+  .h-pane-line .cmd { color: #93c5fd; }
+  .h-pane-line .output { color: #a0a0a0; }
+  .h-pane-line .success { color: #4ade80; }
+  .h-pane-line .thinking { color: #fbbf24; font-style: italic; }
+  .h-pane-line .highlight {
+    background: #D9775720;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border-left: 3px solid #D97757;
+    display: inline-block;
+    margin: 4px 0;
+  }
+
+  /* ── MESSAGING (portrait, center-full) ── */
+  .messaging-content {
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 56px);
+    gap: 0;
+  }
+  .msg-pane {
+    flex: 1;
+    padding: 16px 16px;
+    border-bottom: 1px solid #333;
+    overflow: hidden;
+  }
+  .msg-pane:last-child { border-bottom: none; }
+  .msg-pane-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .msg-pane-name { color: #D97757; font-weight: bold; font-size: 22px; }
+  .msg-pane-task { color: #888; font-size: 16px; }
+  .msg-pane-status { font-size: 18px; }
+  .msg-pane-status.done { color: #4ade80; }
+  .msg-pane-status.working { color: #fbbf24; }
+  .msg-line {
+    font-size: 17px;
+    line-height: 1.5;
+    color: #ccc;
+  }
+  .msg-line .prompt { color: #D97757; }
+  .msg-line .cmd { color: #93c5fd; }
+  .msg-line .output { color: #a0a0a0; }
+  .msg-line .success { color: #4ade80; }
+  .msg-highlight {
+    background: rgba(217, 119, 87, 0.15);
+    padding: 6px 12px;
+    border-radius: 6px;
+    border-left: 4px solid #D97757;
+    margin: 6px 0;
+    font-size: 18px;
+    line-height: 1.5;
+    color: #fbbf24;
+    font-style: italic;
+  }
+  .msg-confirm {
+    font-size: 17px;
+    color: #4ade80;
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<!-- Header (shared across all states) -->
+<div class="header">
+  <span class="title">claude code</span>
+  <span class="team-badge">AGENT TEAM &middot; 3 active</span>
+</div>
+
+<!-- STATE: spawn-prompt (landscape 960x540) -->
+<div id="state-spawn" style="display:none;">
+  <div class="spawn-content">
+    <div class="spawn-path">~/my-project</div>
+    <div class="spawn-cmd">
+      <span class="prompt">&#10095;</span> Create a team with 3 teammates to investigate the auth bug.
+    </div>
+    <div class="spawn-result">
+      <span class="check">&#10003;</span> Created team <span class="name">auth-debug</span>
+    </div>
+    <div class="spawn-teammate"><span class="arrow">&rarr;</span> Spawning <span class="name">security</span> teammate...</div>
+    <div class="spawn-teammate"><span class="arrow">&rarr;</span> Spawning <span class="name">performance</span> teammate...</div>
+    <div class="spawn-teammate"><span class="arrow">&rarr;</span> Spawning <span class="name">debugger</span> teammate...</div>
+    <div class="spawn-active">3 teammates active. Use Shift+&#8595; to cycle through them.</div>
+  </div>
+</div>
+
+<!-- STATE: task-list (landscape 960x540) -->
+<div id="state-tasklist" style="display:none;">
+  <div class="tasklist-content">
+    <div class="tasklist-title">Shared Tasks</div>
+    <div class="task-row"><span class="done">&#10003;</span> <span class="label">Investigate auth module for token refresh bug</span> <span class="owner">&rarr; security</span></div>
+    <div class="task-row"><span class="wip">&#9679;</span> <span class="label">Test concurrent session handling under load</span> <span class="owner">&rarr; performance</span></div>
+    <div class="task-row"><span class="wip">&#9679;</span> <span class="label">Check race condition in task claiming logic</span> <span class="owner">&rarr; debugger</span></div>
+    <div class="task-row"><span class="pending">&#9675;</span> <span class="label">Write regression tests for fixed issues</span></div>
+    <div class="task-row"><span class="pending">&#9675;</span> <span class="label">Update API documentation</span></div>
+  </div>
+</div>
+
+<!-- STATE: team-full (landscape 960x540, horizontal panes) -->
+<div id="state-team" style="display:none;">
+  <div class="team-horizontal">
+    <div class="h-pane">
+      <div class="h-pane-header">
+        <span class="h-pane-name">security</span>
+        <span class="h-pane-status">&#10003; done</span>
+      </div>
+      <div class="h-pane-line"><span class="cmd">Read src/auth/token-refresh.ts</span></div>
+      <div class="h-pane-line"><span class="output">Found: token rotation before validation</span></div>
+      <div class="h-pane-line"><span class="success">&#10003; Fix: move validation before rotation</span></div>
+      <div class="h-pane-line"><span class="thinking">&rarr; Sending findings to debugger...</span></div>
+    </div>
+    <div class="h-pane">
+      <div class="h-pane-header">
+        <span class="h-pane-name">performance</span>
+        <span class="h-pane-status working">&#9679; working</span>
+      </div>
+      <div class="h-pane-line"><span class="cmd">Bash npm run test:load</span></div>
+      <div class="h-pane-line"><span class="output">Running 50 concurrent sessions...</span></div>
+      <div class="h-pane-line"><span class="output">p50=120ms p99=340ms</span></div>
+      <div class="h-pane-line"><span class="thinking">Analyzing bottleneck...</span></div>
+    </div>
+    <div class="h-pane">
+      <div class="h-pane-header">
+        <span class="h-pane-name">debugger</span>
+        <span class="h-pane-status working">&#9679; working</span>
+      </div>
+      <div class="h-pane-line"><span class="cmd">Read src/tasks/claim.ts</span></div>
+      <div class="h-pane-line"><span class="output">Optimistic locking on line 78</span></div>
+      <div class="h-pane-line"><span class="thinking">Received message from security</span></div>
+      <div class="h-pane-line"><span class="success">Confirmed &#8212; security is correct</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- STATE: messaging (portrait 540x960, center-full) -->
+<div id="state-messaging" style="display:none;">
+  <div class="messaging-content">
+    <div class="msg-pane">
+      <div class="msg-pane-header">
+        <span class="msg-pane-name">security</span>
+        <span class="msg-pane-status done">&#10003; done</span>
+      </div>
+      <div class="msg-line"><span class="prompt">&#10095;</span> <span class="cmd">Read src/auth/token-refresh.ts</span></div>
+      <div class="msg-line"><span class="output">Found: token rotation happens before validation</span></div>
+      <div class="msg-line"><span class="success">&#10003; Fix: move validation before rotation on line 142</span></div>
+      <div class="msg-highlight">&rarr; Sending findings to debugger...</div>
+    </div>
+    <div class="msg-pane">
+      <div class="msg-pane-header">
+        <span class="msg-pane-name">performance</span>
+        <span class="msg-pane-status working">&#9679; working</span>
+      </div>
+      <div class="msg-line"><span class="prompt">&#10095;</span> <span class="cmd">Bash npm run test:load -- --concurrency=50</span></div>
+      <div class="msg-line"><span class="output">Running 50 concurrent sessions...</span></div>
+      <div class="msg-line"><span class="output">Results: p50=120ms p99=340ms &mdash; no timeout errors</span></div>
+      <div class="msg-highlight">Analyzing bottleneck in task claiming...</div>
+    </div>
+    <div class="msg-pane">
+      <div class="msg-pane-header">
+        <span class="msg-pane-name">debugger</span>
+        <span class="msg-pane-status working">&#9679; working</span>
+      </div>
+      <div class="msg-line"><span class="prompt">&#10095;</span> <span class="cmd">Read src/tasks/claim.ts</span></div>
+      <div class="msg-line"><span class="output">File lock on line 78 uses optimistic locking</span></div>
+      <div class="msg-highlight">Message from security: &ldquo;token rotation order is the root cause&rdquo;</div>
+      <div class="msg-confirm">Confirmed &mdash; security&rsquo;s theory is correct. Updating task.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // URL hash controls which state is visible
+  function showState() {
+    document.querySelectorAll('[id^="state-"]').forEach(el => el.style.display = 'none');
+    const hash = location.hash.replace('#', '') || 'spawn';
+    const el = document.getElementById('state-' + hash);
+    if (el) el.style.display = 'block';
+  }
+  window.addEventListener('hashchange', showState);
+  showState();
+</script>
+
+</body>
+</html>

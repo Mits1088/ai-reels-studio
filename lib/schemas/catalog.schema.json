@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "catalog.json",
+  "description": "Asset catalog for a reel project. Every asset must have a purpose linked to beats or scenes.",
+  "type": "object",
+  "required": ["assets"],
+  "additionalProperties": false,
+  "properties": {
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "filename", "type", "role", "linked_beats", "description"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "description": "Unique asset ID, used in timeline references"
+          },
+          "filename": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Filename relative to assets/ directory"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["video", "image", "logo", "chart", "icon", "overlay", "sfx", "music"],
+            "description": "Asset content type"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["avatar", "demo", "support", "background", "sfx", "music"],
+            "description": "Which timeline lane or purpose this asset serves"
+          },
+          "linked_beats": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1,
+            "description": "Beat IDs this asset is used for. At least one required."
+          },
+          "scene": {
+            "type": ["integer", "null"],
+            "description": "Scene number if asset spans an entire scene"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "description": "What this asset shows and why it exists"
+          },
+          "duration_s": {
+            "type": ["number", "null"],
+            "description": "Duration in seconds for video/audio assets"
+          },
+          "dimensions": {
+            "type": ["object", "null"],
+            "properties": {
+              "w": { "type": "integer" },
+              "h": { "type": "integer" }
+            },
+            "description": "Width x height for image/video assets"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["capture", "import", "generate", "brand-kit"],
+            "description": "How this asset was obtained"
+          }
+        }
+      }
+    }
+  }
+}

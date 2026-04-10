@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude — Scheduled</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-0: #FAF9F5;
+      --bg-100: #FFFFFF;
+      --bg-200: #F0EEE6;
+      --bg-300: #DDDDDD;
+      --text-100: #1F1E1D;
+      --text-200: #3D3D3A;
+      --text-300: #73726C;
+      --text-400: #888888;
+      --text-500: #999999;
+      --accent: #D97757;
+      --accent-bg: #FFF8F5;
+      --accent-border: #F0C8B8;
+      --green: #16A34A;
+      --green-bg: #F0FDF4;
+      --blue: #2563EB;
+      --blue-bg: #EFF6FF;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%; overflow: hidden;
+      font-family: "Inter", system-ui, sans-serif;
+      background: var(--bg-0);
+      color: var(--text-100);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body { display: flex; height: 100vh; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 260px;
+      background: var(--bg-0);
+      border-right: 1px solid var(--bg-200);
+      display: flex;
+      flex-direction: column;
+      padding: 16px 12px;
+    }
+    .sidebar-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 4px 8px 16px;
+    }
+    .sidebar-logo { display: flex; align-items: center; gap: 8px; }
+    .sidebar-logo img { width: 28px; height: 28px; }
+    .sidebar-logo span { font-weight: 600; font-size: 15px; }
+
+    .new-chat-btn {
+      display: flex; align-items: center; gap: 8px;
+      width: 100%; padding: 10px 12px;
+      background: none; border: 1px solid var(--bg-300);
+      border-radius: 10px; cursor: pointer;
+      font-family: inherit; font-size: 14px; color: var(--text-200);
+      margin-bottom: 16px;
+    }
+
+    .sidebar-nav { display: flex; flex-direction: column; gap: 2px; margin-bottom: 20px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 8px;
+      font-size: 14px; color: var(--text-200); cursor: pointer;
+    }
+    .nav-item:hover { background: var(--bg-200); }
+    .nav-item.active { background: var(--bg-200); font-weight: 500; color: var(--text-100); }
+    .nav-item svg { width: 18px; height: 18px; color: var(--text-400); }
+    .nav-item.active svg { color: var(--accent); }
+
+    .sidebar-section { padding: 0 4px; }
+    .sidebar-section-title {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--text-400);
+      margin-bottom: 8px; padding: 0 8px;
+    }
+    .sidebar-chat {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 12px; border-radius: 8px;
+      font-size: 13px; color: var(--text-300); cursor: pointer;
+    }
+    .sidebar-chat:hover { background: var(--bg-200); }
+
+    /* ── Main ── */
+    .main { flex: 1; display: flex; flex-direction: column; }
+
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--bg-200);
+    }
+    .mode-tabs { display: flex; gap: 2px; background: var(--bg-200); border-radius: 10px; padding: 3px; }
+    .mode-tab {
+      padding: 6px 16px; border-radius: 8px;
+      font-size: 13px; font-weight: 500; color: var(--text-300);
+      cursor: pointer; border: none; background: none; font-family: inherit;
+    }
+    .mode-tab.active { background: var(--bg-100); color: var(--text-100); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+    /* ── Scheduled content ── */
+    .scheduled-content {
+      flex: 1; padding: 40px 48px; overflow-y: auto;
+    }
+    .scheduled-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 32px;
+    }
+    .scheduled-title {
+      font-family: "Source Serif 4", Georgia, serif;
+      font-weight: 400; font-size: 26px; color: var(--text-100);
+    }
+    .create-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 16px;
+      background: var(--accent); color: white;
+      border: none; border-radius: 10px;
+      font-family: inherit; font-size: 14px; font-weight: 500;
+      cursor: pointer;
+    }
+    .create-btn svg { width: 16px; height: 16px; }
+
+    /* ── Task cards ── */
+    .task-grid { display: flex; flex-direction: column; gap: 12px; max-width: 640px; }
+
+    .task-card {
+      background: var(--bg-100);
+      border: 1px solid var(--bg-200);
+      border-radius: 14px;
+      padding: 18px 20px;
+      cursor: pointer;
+      transition: box-shadow 0.15s;
+    }
+    .task-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+
+    .task-card-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .task-name { font-size: 15px; font-weight: 600; color: var(--text-100); }
+    .task-status {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px; border-radius: 99px;
+      font-size: 12px; font-weight: 500;
+    }
+    .task-status.active { background: var(--green-bg); color: var(--green); }
+    .task-status.active::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+    }
+    .task-status.paused { background: var(--bg-200); color: var(--text-400); }
+
+    .task-desc {
+      font-size: 14px; color: var(--text-300); line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .task-meta {
+      display: flex; align-items: center; gap: 16px;
+      font-size: 12px; color: var(--text-400);
+    }
+    .task-meta-item { display: flex; align-items: center; gap: 5px; }
+    .task-meta-item svg { width: 14px; height: 14px; }
+
+    .task-skill {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 8px; border-radius: 6px;
+      background: var(--accent-bg); border: 1px solid var(--accent-border);
+      font-size: 11px; font-weight: 500; color: #5A2D1A;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <img src="claude-logo.png" alt="Claude" />
+        <span>Claude</span>
+      </div>
+    </div>
+    <button class="new-chat-btn">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+      New chat
+    </button>
+
+    <div class="sidebar-nav">
+      <div class="nav-item">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M8 10h.01M12 10h.01M16 10h.01M9 16h6M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Chats
+      </div>
+      <div class="nav-item active">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Scheduled
+      </div>
+      <div class="nav-item">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+        Ideas
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Recent</div>
+      <div class="sidebar-chat">Marketing content plan</div>
+      <div class="sidebar-chat">Weekly report draft</div>
+      <div class="sidebar-chat">Product launch email</div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div class="mode-tabs">
+        <button class="mode-tab">Chat</button>
+        <button class="mode-tab active">Cowork</button>
+        <button class="mode-tab">Code</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:13px;color:var(--text-400);">Sonnet 4.5</span>
+      </div>
+    </div>
+
+    <div class="scheduled-content">
+      <div class="scheduled-header">
+        <div class="scheduled-title">Scheduled tasks</div>
+        <button class="create-btn">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          Create task
+        </button>
+      </div>
+
+      <div class="task-grid">
+        <!-- Task 1: Weekly report -->
+        <div class="task-card">
+          <div class="task-card-header">
+            <div class="task-name">Weekly performance report</div>
+            <div class="task-status active">Active</div>
+          </div>
+          <div class="task-desc">Compile metrics from Google Analytics and CRM, summarize key wins and blockers, and save the report to the Marketing folder.</div>
+          <div class="task-meta">
+            <div class="task-meta-item">
+              <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Every Monday, 8:00 AM
+            </div>
+            <div class="task-meta-item">
+              <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              Last run: Mar 31
+            </div>
+            <div class="task-skill">✍️ Productivity</div>
+          </div>
+        </div>
+
+        <!-- Task 2: Daily briefing -->
+        <div class="task-card">
+          <div class="task-card-header">
+            <div class="task-name">Morning briefing email</div>
+            <div class="task-status active">Active</div>
+          </div>
+          <div class="task-desc">Check calendar, pull priority emails, draft a briefing with today's meetings and action items, and send to my inbox.</div>
+          <div class="task-meta">
+            <div class="task-meta-item">
+              <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Weekdays, 7:30 AM
+            </div>
+            <div class="task-meta-item">
+              <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              Last run: Today
+            </div>
+            <div class="task-skill">📧 Productivity</div>
+          </div>
+        </div>
+
+        <!-- Task 3: Content calendar -->
+        <div class="task-card">
+          <div class="task-card-header">
+            <div class="task-name">Content calendar update</div>
+            <div class="task-status active">Active</div>
+          </div>
+          <div class="task-desc">Review upcoming social posts, check for gaps in the content calendar, and draft suggestions for the next two weeks.</div>
+          <div class="task-meta">
+            <div class="task-meta-item">
+              <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Every Wednesday, 9:00 AM
+            </div>
+            <div class="task-meta-item">
+              <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              Last run: Mar 26
+            </div>
+            <div class="task-skill">✍️ Marketing</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "project.json",
+  "description": "Project manifest. Tracks metadata, phase, status, and gate completion for reel and youtube projects.",
+  "type": "object",
+  "required": ["schema_version", "project_type", "slug", "title", "phase", "status", "gates_passed", "created", "updated"],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Schema version. Current: 2."
+    },
+    "project_type": {
+      "type": "string",
+      "enum": ["reel", "youtube"],
+      "description": "Project type. Determines which fields are required and which phases/gates are valid."
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$",
+      "description": "URL-safe project identifier, matches directory name."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "phase": {
+      "type": "string",
+      "description": "Current pipeline phase. Valid values depend on project_type."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["initialized", "in_progress", "awaiting_approval", "approved", "blocked", "completed", "failed"]
+    },
+    "gates_passed": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": [],
+      "description": "Cleared gate IDs. Valid IDs depend on project_type."
+    },
+    "created": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated": {
+      "type": "string",
+      "format": "date-time"
+    },
+
+    "style": {
+      "type": "string",
+      "enum": ["cinematic-presenter", "editorial-authority"],
+      "default": "cinematic-presenter",
+      "description": "Visual style profile (reel only)."
+    },
+    "theme": {
+      "type": ["string", "null"],
+      "description": "Theme name from theme-factory."
+    },
+    "theme_primary": {
+      "type": ["string", "null"],
+      "description": "Primary brand color hex (#RRGGBB)."
+    },
+    "theme_secondary": {
+      "type": ["string", "null"],
+      "description": "Secondary brand color hex (#RRGGBB)."
+    },
+    "input_quality": {
+      "type": ["string", "null"],
+      "enum": ["excellent", "great", "good", "bad", null]
+    },
+    "voice_file": {
+      "type": ["string", "null"],
+      "description": "Path to audio relative to project dir."
+    },
+    "duration_s": {
+      "type": ["number", "null"],
+      "description": "Total reel duration in seconds (reel only)."
+    },
+
+    "topic": { "type": ["string", "null"] },
+    "source_url": { "type": ["string", "null"] },
+    "audience": { "type": ["string", "null"] },
+    "target_duration": { "type": ["string", "null"] },
+    "hook_direction": { "type": ["string", "null"] },
+    "cta_direction": { "type": ["string", "null"] },
+    "content_type": { "type": ["string", "null"] },
+    "entry_path": {
+      "type": ["string", "null"],
+      "enum": ["source-first", "topic-first", "script-first", "revision", null]
+    },
+    "series": { "type": ["string", "null"] },
+    "trust_beat_likely": { "type": ["boolean", "null"] },
+    "avatar_file": { "type": ["string", "null"] },
+    "avatar_format": { "type": ["string", "null"] },
+    "canonical_audio": { "type": ["string", "null"] },
+
+    "duration": { "type": ["number", "null"], "description": "Video duration in seconds (youtube only)." },
+    "fps": { "type": ["integer", "null"], "description": "Frame rate (youtube only)." },
+    "width": { "type": ["integer", "null"], "description": "Output width (youtube only)." },
+    "height": { "type": ["integer", "null"], "description": "Output height (youtube only)." },
+    "source_width": { "type": ["integer", "null"], "description": "Original video width (youtube only)." },
+    "source_height": { "type": ["integer", "null"], "description": "Original video height (youtube only)." },
+    "video_file": { "type": ["string", "null"], "description": "Video filename (youtube only)." }
+  },
+  "additionalProperties": false
+}

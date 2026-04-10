@@ -1,0 +1,49 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/reinject-after-compact.sh\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/validate-project-json.sh\""
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/protect-generated-artifacts.sh\""
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(python -m lib.phase *)",
+      "Bash(python -m lib.validate *)",
+      "Bash(python -m lib.gates *)",
+      "Bash(python -m lib.components *)",
+      "Bash(python -m lib.migrate *)",
+      "Bash(python -m lib.qa.cli *)",
+      "Bash(python lib/test_contracts.py *)",
+      "Bash(npx tsc --noEmit *)"
+    ]
+  }
+}

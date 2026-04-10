@@ -1,0 +1,216 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Reel Training Example",
+  "description": "Structured prompt-completion pair for training/fine-tuning reel generation. Each example represents one fully reverse-engineered reference reel.",
+
+  "type": "object",
+  "required": ["meta", "prompt", "completion", "style_card"],
+
+  "properties": {
+    "meta": {
+      "type": "object",
+      "description": "Source and preprocessing metadata",
+      "required": ["source_video", "creator", "duration_s", "fps", "resolution"],
+      "properties": {
+        "source_video": {"type": "string"},
+        "creator": {"type": "string"},
+        "duration_s": {"type": "number"},
+        "fps": {"type": "number"},
+        "resolution": {"type": "string", "pattern": "^\\d+x\\d+$"},
+        "aspect_ratio": {"type": "string", "enum": ["9:16", "16:9", "1:1"]},
+        "extracted": {"type": "string", "format": "date"},
+        "preprocessing": {"type": "object"}
+      }
+    },
+
+    "prompt": {
+      "type": "object",
+      "description": "Input: what you would give the system to produce this reel",
+      "required": ["topic", "audience", "product", "style_intent", "target_duration_s"],
+      "properties": {
+        "topic": {"type": "string", "description": "One-line topic summary"},
+        "audience": {"type": "string", "description": "Target viewer profile"},
+        "product": {"type": "string", "description": "Product/brand name"},
+        "source_material": {"type": "string", "description": "What source assets exist"},
+        "style_intent": {"type": "string", "description": "Reel style/structure type"},
+        "target_duration_s": {"type": "integer"},
+        "hook_direction": {"type": "string", "description": "Hook pattern category"}
+      }
+    },
+
+    "completion": {
+      "type": "object",
+      "description": "Output: the ideal reel package this input should produce",
+      "required": ["hook", "script", "segments", "template_sequence", "caption_data", "cta"],
+
+      "properties": {
+        "hook": {
+          "type": "object",
+          "required": ["text", "duration_s", "pattern", "first_frame_visual"],
+          "properties": {
+            "text": {"type": "string"},
+            "duration_s": {"type": "number"},
+            "pattern": {
+              "type": "string",
+              "enum": ["brand-name-news", "result-first", "cost-tension", "secret-knowledge", "number-outcome", "challenge-assumption"]
+            },
+            "first_frame_visual": {"type": "string"}
+          }
+        },
+
+        "script": {"type": "string", "description": "Full narration transcript"},
+
+        "proof_escalation": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Proof types in order they appear"
+        },
+
+        "segments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "time", "duration_s", "template", "narration", "visual", "avatar", "proof_class"],
+            "properties": {
+              "id": {"type": "string"},
+              "time": {"type": "string", "description": "start–end in seconds"},
+              "duration_s": {"type": "number"},
+              "template": {
+                "type": "string",
+                "enum": [
+                  "logo-reveal-split",
+                  "proof-overlay-split",
+                  "card-carousel",
+                  "demo-fullscreen",
+                  "avatar-overlay",
+                  "proof-fullscreen-warm",
+                  "proof-fullscreen-dark",
+                  "text-fullscreen-dark",
+                  "avatar-direct",
+                  "split-screen-standard",
+                  "montage-rapid",
+                  "hero-text-card"
+                ]
+              },
+              "narration": {"type": "string"},
+              "visual": {"type": "string", "description": "Detailed visual description"},
+              "visual_details": {
+                "type": "array",
+                "items": {"type": "object"},
+                "description": "Per-shot visual breakdown within segment"
+              },
+              "caption": {"type": ["string", "null"]},
+              "caption_suppression_reason": {"type": "string"},
+              "avatar": {
+                "type": "string",
+                "enum": ["full-screen", "visible, bottom 50%", "visible, bottom 35%", "hidden", "mostly hidden or bottom peek", "full-screen, overlays float ON the presenter", "full-screen, badges float on body", "full-screen, clean"]
+              },
+              "proof_class": {
+                "type": ["string", "null"],
+                "enum": ["existence", "breadth", "process", "output", "integration", "authority", "cta", null]
+              },
+              "editorial_role": {"type": "string"},
+              "scene_cut_at": {
+                "oneOf": [
+                  {"type": "number"},
+                  {"type": "array", "items": {"type": "number"}}
+                ]
+              }
+            }
+          }
+        },
+
+        "template_sequence": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Ordered list of templates used"
+        },
+
+        "template_class_sequence": {
+          "type": "array",
+          "items": {"type": "string", "enum": ["ANCHOR", "PROOF"]},
+          "description": "Whether each segment is face-led (ANCHOR) or content-led (PROOF)"
+        },
+
+        "scene_cuts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "time": {"type": "number"},
+              "from": {"type": "string"},
+              "to": {"type": "string"}
+            }
+          }
+        },
+
+        "caption_data": {
+          "type": "object",
+          "properties": {
+            "style": {
+              "type": "object",
+              "description": "Caption visual properties"
+            },
+            "emphasis_rules": {
+              "type": "array",
+              "items": {"type": "object"}
+            },
+            "suppression_zones": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "time": {"type": "string"},
+                  "reason": {"type": "string"}
+                }
+              }
+            },
+            "chunks": {
+              "type": "array",
+              "items": {"type": "object"}
+            }
+          }
+        },
+
+        "rhythm_data": {
+          "type": "object",
+          "description": "Quantitative pacing metrics"
+        },
+
+        "asset_classes": {
+          "type": "object",
+          "description": "Categorized asset inventory"
+        },
+
+        "cta": {
+          "type": "object",
+          "required": ["type", "action_word"],
+          "properties": {
+            "type": {"type": "string", "enum": ["comment-for-dm", "follow", "link-in-bio", "save", "share"]},
+            "action_word": {"type": "string"},
+            "offer": {"type": "string"},
+            "platform": {"type": "string"},
+            "visual_reinforcement": {"type": "array", "items": {"type": "string"}},
+            "dwell_time_s": {"type": "number"}
+          }
+        }
+      }
+    },
+
+    "style_card": {
+      "type": "object",
+      "description": "Reusable style profile derived from this example",
+      "required": ["id", "name", "template_registry", "rules"],
+      "properties": {
+        "id": {"type": "string"},
+        "name": {"type": "string"},
+        "description": {"type": "string"},
+        "template_registry": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "rules": {"type": "object"}
+      }
+    }
+  }
+}

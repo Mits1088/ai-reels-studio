@@ -1,0 +1,17 @@
+{
+  "schema_version": 2,
+  "project_type": "reel",
+  "slug": "example-project",
+  "title": "Deploy in One Click — Product Demo",
+  "style": "cinematic-presenter",
+  "theme": null,
+  "theme_primary": null,
+  "theme_secondary": null,
+  "phase": "qa",
+  "status": "completed",
+  "gates_passed": [],
+  "created": "2026-03-19T10:00:00Z",
+  "updated": "2026-03-19T10:30:00Z",
+  "voice_file": "audio/source.wav",
+  "duration_s": 14.5
+}

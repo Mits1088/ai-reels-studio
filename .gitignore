@@ -1,0 +1,99 @@
+# ─────────────────────────────────────────────────────────────────────
+# Secrets — NEVER commit these
+# ─────────────────────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+**/cookies*.json
+**/session*.json
+**/auth-state*.json
+**/storage-state*.json
+broll-tests/chatgpt-session.json
+.playwright-profile/
+
+# ─────────────────────────────────────────────────────────────────────
+# Per-developer local Claude Code config (paths, command permissions)
+# ─────────────────────────────────────────────────────────────────────
+.claude/settings.local.json
+**/*.local.json
+
+# ─────────────────────────────────────────────────────────────────────
+# Per-project content (audio, video, captures, renders)
+# Excluded to keep repo small and avoid leaking project-specific data
+# ─────────────────────────────────────────────────────────────────────
+projects/
+Avatar/
+NotebookLM-Video/
+broll-tests/
+screenshots/
+
+# ─────────────────────────────────────────────────────────────────────
+# Binary asset libraries (excluded for code-only repo)
+# ─────────────────────────────────────────────────────────────────────
+Images/
+SFX/
+
+# ─────────────────────────────────────────────────────────────────────
+# Build artifacts and dependencies
+# ─────────────────────────────────────────────────────────────────────
+node_modules/
+**/node_modules/
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# ─────────────────────────────────────────────────────────────────────
+# Remotion output and QA artifacts
+# remotion/public/ holds the active project's working assets — excluded
+# because it's regenerated per project from projects/<slug>/
+# ─────────────────────────────────────────────────────────────────────
+remotion/out/
+remotion/public/
+remotion/qa-check/
+remotion/test-*.png
+out/
+
+# ─────────────────────────────────────────────────────────────────────
+# Nested git repository (vendored Anthropic skills)
+# Tracked separately upstream — exclude to avoid submodule complexity
+# ─────────────────────────────────────────────────────────────────────
+training/anthropic-skills/
+
+# ─────────────────────────────────────────────────────────────────────
+# Large training reference media
+# ─────────────────────────────────────────────────────────────────────
+training/references/
+
+# ─────────────────────────────────────────────────────────────────────
+# Loose debug screenshots at repo root
+# ─────────────────────────────────────────────────────────────────────
+verify-*.png
+Screenshot*.png
+test-*.png
+
+# ─────────────────────────────────────────────────────────────────────
+# OS / editor cruft
+# ─────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ─────────────────────────────────────────────────────────────────────
+# Logs and temp files
+# ─────────────────────────────────────────────────────────────────────
+*.log
+*.tmp
+*.bak
+.cache/

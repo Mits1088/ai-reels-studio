@@ -1,0 +1,126 @@
+{
+  "schema": "training-schema.json",
+  "examples": [
+    {
+      "id": "nicholas-puru-claude-plugins",
+      "creator": "nicholas.puru",
+      "file": "references/nicholas-processed/training-example.json",
+      "status": "complete",
+      "topic": "Claude plugin store launch",
+      "style_card": "proof-escalation-editorial",
+      "duration_s": 58,
+      "segments": 12,
+      "templates_used": 8,
+      "date_processed": "2026-04-09"
+    },
+    {
+      "id": "lindsay-ai-pending",
+      "creator": "lindsay.ai",
+      "file": "references/lindsay-processed/training-example.json",
+      "status": "preprocessed-only",
+      "topic": "TODO",
+      "style_card": "TODO",
+      "duration_s": null,
+      "segments": null,
+      "templates_used": null,
+      "date_processed": null,
+      "notes": "Existing frames at training/references/lindsay-frames/. Run preprocess-reel.py then annotate."
+    },
+    {
+      "id": "varunmayya-pending",
+      "creator": "thevarunmayya",
+      "file": "references/thevarunmayya-processed/training-example.json",
+      "status": "not-started",
+      "topic": "TODO",
+      "style_card": "TODO",
+      "duration_s": null,
+      "segments": null,
+      "templates_used": null,
+      "date_processed": null,
+      "notes": "Existing frames at training/references/frames/. Run preprocess-reel.py then annotate."
+    }
+  ],
+
+  "style_cards": [
+    {
+      "id": "proof-escalation-editorial",
+      "name": "Proof Escalation Editorial",
+      "source_example": "nicholas-puru-claude-plugins",
+      "key_patterns": [
+        "news-event hook with brand name",
+        "proof escalation: existence → breadth → process → output → authority",
+        "caption suppression during demo-fullscreen",
+        "face-as-canvas overlays",
+        "card carousel for breadth proof",
+        "hard cuts, no fancy transitions"
+      ]
+    }
+  ],
+
+  "template_registry": {
+    "logo-reveal-split": {
+      "description": "Logo animation top + presenter bottom, hook only",
+      "avatar": "visible, bottom 50%",
+      "background": "warm beige",
+      "caption": "standard",
+      "seen_in": ["nicholas-puru-claude-plugins"]
+    },
+    "proof-overlay-split": {
+      "description": "Proof screenshot dominates top 60-65%, presenter head peeks from bottom 35%",
+      "avatar": "peek, bottom 35%",
+      "background": "content-driven",
+      "caption": "standard at boundary",
+      "seen_in": ["nicholas-puru-claude-plugins"]
+    },
+    "card-carousel": {
+      "description": "Rapid dark cards cycling, one visible at a time, no avatar",
+      "avatar": "hidden",
+      "background": "dark #1A1A1A",
+      "caption": "suppressed",
+      "seen_in": ["nicholas-puru-claude-plugins"]
+    },
+    "demo-fullscreen": {
+      "description": "Full-screen UI recording with cursor, no avatar, no caption",
+      "avatar": "hidden",
+      "background": "content-driven (usually dark UI)",
+      "caption": "suppressed",
+      "seen_in": ["nicholas-puru-claude-plugins"]
+    },
+    "avatar-overlay": {
+      "description": "Presenter full-screen with floating overlays ON body (icons, badges, cards)",
+      "avatar": "full-screen, overlays on body",
+      "background": "natural/warm",
+      "caption": "standard or replaced by overlay",
+      "seen_in": ["nicholas-puru-claude-plugins"]
+    },
+    "proof-fullscreen-warm": {
+      "description": "Output proof screenshot on warm beige background, no avatar",
+      "avatar": "hidden or bottom peek",
+      "background": "warm beige #F0EBE0",
+      "caption": "section-label + standard",
+      "seen_in": ["nicholas-puru-claude-plugins"]
+    },
+    "text-fullscreen-dark": {
+      "description": "Document text on dark background, scrolling, no avatar",
+      "avatar": "hidden",
+      "background": "dark #2A2A2A",
+      "caption": "standard over text",
+      "seen_in": ["nicholas-puru-claude-plugins"]
+    },
+    "avatar-direct": {
+      "description": "Clean presenter full-screen, no overlays, caption only",
+      "avatar": "full-screen, clean",
+      "background": "natural",
+      "caption": "standard",
+      "seen_in": ["nicholas-puru-claude-plugins"]
+    }
+  },
+
+  "pipeline": {
+    "step_1_preprocess": "python training/preprocess-reel.py --video <path> --creator <name>",
+    "step_2_annotate": "Open skeleton.json, view frames/, classify each segment (template, visual, caption, proof_class, avatar)",
+    "step_3_caption_ocr": "Manually transcribe captions from keyframes or use OCR if Tesseract is available",
+    "step_4_style_card": "If this reel represents a new style, define the style_card with template_registry and rules",
+    "step_5_validate": "Check all TODO fields are filled, all segments have templates, proof_escalation is ordered"
+  }
+}

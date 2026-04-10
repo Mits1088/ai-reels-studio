@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=540, height=960">
+<title>Claude Code Agent Teams</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    font-family: 'Cascadia Code', 'Fira Code', 'SF Mono', monospace;
+    color: #e0e0e0;
+    width: 540px;
+    height: 960px;
+    overflow: hidden;
+  }
+
+  .header {
+    background: #0f0f1a;
+    padding: 12px 16px;
+    font-size: 11px;
+    color: #888;
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .header .title { color: #D97757; font-weight: bold; font-size: 13px; }
+  .header .team-badge {
+    background: #D97757;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: bold;
+  }
+
+  .panes { display: flex; flex-direction: column; height: calc(100% - 40px); }
+
+  .pane {
+    flex: 1;
+    border-bottom: 1px solid #333;
+    padding: 10px 12px;
+    overflow: hidden;
+    position: relative;
+  }
+  .pane:last-child { border-bottom: none; }
+
+  .pane-header {
+    font-size: 10px;
+    color: #888;
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .pane-name { color: #D97757; font-weight: bold; }
+  .pane-status { color: #4ade80; }
+  .pane-status.thinking { color: #fbbf24; }
+
+  .line { font-size: 11px; line-height: 1.6; color: #ccc; }
+  .line .prompt { color: #D97757; }
+  .line .cmd { color: #93c5fd; }
+  .line .output { color: #a0a0a0; }
+  .line .success { color: #4ade80; }
+  .line .file { color: #c084fc; }
+  .line .thinking { color: #fbbf24; font-style: italic; }
+
+  .task-list {
+    background: #0f0f1a;
+    padding: 10px 12px;
+    border-bottom: 1px solid #333;
+  }
+  .task-list h3 {
+    font-size: 11px;
+    color: #D97757;
+    margin-bottom: 6px;
+  }
+  .task {
+    font-size: 10px;
+    line-height: 1.8;
+    display: flex;
+    gap: 6px;
+  }
+  .task .done { color: #4ade80; }
+  .task .wip { color: #fbbf24; }
+  .task .pending { color: #666; }
+  .task .label { color: #ccc; }
+  .task .owner { color: #93c5fd; font-size: 9px; }
+
+  /* States controlled by hash */
+  .state-spawn .panes, .state-working .panes, .state-messaging .panes,
+  .state-tasklist .task-list { display: flex; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <span class="title">claude code</span>
+  <span class="team-badge">AGENT TEAM · 3 active</span>
+</div>
+
+<!-- Shared Task List -->
+<div class="task-list" id="task-list">
+  <h3>Shared Tasks</h3>
+  <div class="task"><span class="done">✓</span> <span class="label">Investigate auth module for token refresh bug</span> <span class="owner">→ security</span></div>
+  <div class="task"><span class="wip">●</span> <span class="label">Test concurrent session handling under load</span> <span class="owner">→ performance</span></div>
+  <div class="task"><span class="wip">●</span> <span class="label">Check race condition in task claiming logic</span> <span class="owner">→ debugger</span></div>
+  <div class="task"><span class="pending">○</span> <span class="label">Write regression tests for fixed issues</span></div>
+  <div class="task"><span class="pending">○</span> <span class="label">Update API documentation</span></div>
+</div>
+
+<!-- Terminal Panes -->
+<div class="panes">
+
+  <!-- Pane 1: Security Reviewer -->
+  <div class="pane">
+    <div class="pane-header">
+      <span><span class="pane-name">security</span> · reviewing auth module</span>
+      <span class="pane-status">✓ done</span>
+    </div>
+    <div class="line"><span class="prompt">❯</span> <span class="cmd">Read src/auth/token-refresh.ts</span></div>
+    <div class="line"><span class="output">Found: token rotation happens before validation completes</span></div>
+    <div class="line"><span class="success">✓ Fix: move validation before rotation on line 142</span></div>
+    <div class="line"><span class="thinking">→ Sending findings to debugger...</span></div>
+  </div>
+
+  <!-- Pane 2: Performance Analyst -->
+  <div class="pane">
+    <div class="pane-header">
+      <span><span class="pane-name">performance</span> · load testing sessions</span>
+      <span class="pane-status thinking">● working</span>
+    </div>
+    <div class="line"><span class="prompt">❯</span> <span class="cmd">Bash npm run test:load -- --concurrency=50</span></div>
+    <div class="line"><span class="output">Running 50 concurrent sessions...</span></div>
+    <div class="line"><span class="output">Results: p50=120ms p99=340ms — no timeout errors</span></div>
+    <div class="line"><span class="thinking">Analyzing bottleneck in task claiming...</span></div>
+  </div>
+
+  <!-- Pane 3: Debugger -->
+  <div class="pane">
+    <div class="pane-header">
+      <span><span class="pane-name">debugger</span> · race condition analysis</span>
+      <span class="pane-status thinking">● working</span>
+    </div>
+    <div class="line"><span class="prompt">❯</span> <span class="cmd">Read src/tasks/claim.ts</span></div>
+    <div class="line"><span class="output">File lock on line 78 uses optimistic locking</span></div>
+    <div class="line"><span class="thinking">Message from security: "token rotation order is the root cause"</span></div>
+    <div class="line"><span class="success">Confirmed — security's theory is correct. Updating task.</span></div>
+  </div>
+
+</div>
+
+</body>
+</html>

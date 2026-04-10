@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "beat-map.json",
+  "description": "Phrase/beat-level timing map derived from voice analysis. Every visual decision traces back to a beat.",
+  "type": "object",
+  "required": ["total_duration", "beats"],
+  "additionalProperties": false,
+  "properties": {
+    "total_duration": {
+      "type": "number",
+      "minimum": 0.1,
+      "description": "Total voice duration in seconds (3 decimal places)"
+    },
+    "beats": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "scene", "phrase", "start", "end", "words"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^beat-\\d{2,}$",
+            "description": "Unique beat ID, e.g. beat-01"
+          },
+          "scene": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Scene number this beat belongs to"
+          },
+          "phrase": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The narration phrase for this beat"
+          },
+          "start": {
+            "type": "number",
+            "minimum": 0
+          },
+          "end": {
+            "type": "number",
+            "minimum": 0
+          },
+          "words": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["word", "start", "end"],
+              "additionalProperties": false,
+              "properties": {
+                "word": { "type": "string", "minLength": 1 },
+                "start": { "type": "number", "minimum": 0 },
+                "end": { "type": "number", "minimum": 0 }
+              }
+            }
+          },
+          "visual_intent": {
+            "type": "string",
+            "minLength": 1,
+            "description": "What the viewer should see during this beat"
+          },
+          "asset_refs": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "IDs of assets from catalog.json needed for this beat"
+          }
+        }
+      }
+    }
+  }
+}

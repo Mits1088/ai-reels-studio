@@ -1,0 +1,28 @@
+{
+  "captions": [
+    {
+      "beat_id": "beat-01",
+      "start": 0.000,
+      "end": 2.800,
+      "text": "ONE CLICK deploy"
+    },
+    {
+      "beat_id": "beat-02",
+      "start": 3.000,
+      "end": 5.200,
+      "text": "No pipelines. No waiting."
+    },
+    {
+      "beat_id": "beat-03",
+      "start": 5.500,
+      "end": 8.800,
+      "text": "Hit this button"
+    },
+    {
+      "beat_id": "beat-04",
+      "start": 9.200,
+      "end": 14.500,
+      "text": "Try it free"
+    }
+  ]
+}

@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+      font-size: 15px;
+      background: #faf9f7;
+      color: #1a1a1a;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: #faf9f7;
+      border-bottom: 1px solid #e8e6e1;
+      flex-shrink: 0;
+    }
+    .topbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 16px;
+      color: #1a1a1a;
+    }
+    .claude-icon {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #CC785C 0%, #D4956A 50%, #E8B88A 100%);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .claude-icon svg { width: 18px; height: 18px; }
+    .topbar-model {
+      font-size: 13px;
+      color: #666;
+      background: #f0ede8;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+    .topbar-menu {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+    .topbar-menu span {
+      display: block;
+      width: 20px;
+      height: 2px;
+      background: #555;
+      border-radius: 2px;
+    }
+
+    /* ── Chat area ── */
+    .chat-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .msg {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .msg-role {
+      font-size: 12px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .msg.human .msg-role { color: #CC785C; }
+    .msg.claude .msg-role { color: #6B6B6B; }
+    .msg-body {
+      font-size: 15px;
+      line-height: 1.6;
+      color: #1a1a1a;
+    }
+    .msg.human .msg-body {
+      background: #fff;
+      border: 1px solid #e8e6e1;
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+    .msg.claude .msg-body {
+      padding: 0;
+    }
+    .msg-body ol, .msg-body ul {
+      padding-left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .msg-body p { margin-bottom: 8px; }
+    .msg-body p:last-child { margin-bottom: 0; }
+
+    /* Cursor blink */
+    .cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1em;
+      background: #1a1a1a;
+      vertical-align: middle;
+      animation: blink 1s step-end infinite;
+      margin-left: 1px;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* ── Input bar ── */
+    .input-bar {
+      padding: 12px 16px 20px;
+      background: #faf9f7;
+      flex-shrink: 0;
+    }
+    .input-wrap {
+      background: #fff;
+      border: 1.5px solid #d8d4ce;
+      border-radius: 14px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      min-height: 50px;
+    }
+    .input-wrap:focus-within {
+      border-color: #CC785C;
+      box-shadow: 0 0 0 3px rgba(204, 120, 92, 0.12);
+    }
+    #user-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 15px;
+      font-family: inherit;
+      background: transparent;
+      color: #1a1a1a;
+      resize: none;
+      line-height: 1.5;
+      min-height: 24px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    #user-input::placeholder { color: #bbb; }
+    .send-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: #CC785C;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .send-btn svg { width: 16px; height: 16px; fill: #fff; }
+    .send-btn:disabled { background: #ddd; cursor: default; }
+
+    /* ── Skills panel overlay ── */
+    .panel-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      z-index: 50;
+      display: none;
+      align-items: flex-end;
+    }
+    .panel-overlay.visible { display: flex; }
+    .panel-sheet {
+      width: 100%;
+      background: #fff;
+      border-radius: 20px 20px 0 0;
+      padding: 20px 0 32px;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .panel-handle {
+      width: 36px;
+      height: 4px;
+      background: #ddd;
+      border-radius: 2px;
+      margin: 0 auto 18px;
+    }
+    .panel-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #1a1a1a;
+      padding: 0 20px 14px;
+      border-bottom: 1px solid #f0ede8;
+    }
+    .panel-section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 16px 20px 8px;
+    }
+    .skill-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 20px;
+      border-bottom: 1px solid #f5f3f0;
+      cursor: pointer;
+    }
+    .skill-item:hover { background: #faf9f7; }
+    .skill-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #CC785C, #E8B88A);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 18px;
+    }
+    .skill-info { flex: 1; min-width: 0; }
+    .skill-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 3px;
+    }
+    .skill-desc {
+      font-size: 13px;
+      color: #777;
+      line-height: 1.4;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .skill-badge {
+      font-size: 11px;
+      background: #eaf4ec;
+      color: #2e7d32;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 600;
+      flex-shrink: 0;
+      align-self: center;
+    }
+    .panel-empty {
+      padding: 40px 20px;
+      text-align: center;
+      color: #aaa;
+      font-size: 14px;
+    }
+
+    /* ── Auto-activate banner ── */
+    .skill-activate-banner {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      margin: 0 16px 16px;
+      background: #fff8f5;
+      border: 1.5px solid #f0c8b8;
+      border-radius: 10px;
+      padding: 10px 14px;
+    }
+    .skill-activate-banner.visible { display: flex; }
+    .banner-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      background: linear-gradient(135deg, #CC785C, #E8B88A);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .banner-text { font-size: 13px; color: #5a2d1a; line-height: 1.4; }
+    .banner-text strong { font-weight: 700; display: block; }
+
+    /* ── States ── */
+    .state { display: none; flex-direction: column; height: 100%; }
+    .state.active { display: flex; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     STATE 1: SKILL CREATION (typing demo)
+     Playwright types into #user-input slowly
+═══════════════════════════════════════════ -->
+<div class="state" id="state-typing">
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="claude-icon">
+        <svg viewBox="0 0 32 32" fill="none"><path d="M16 4C9.37 4 4 9.37 4 16s5.37 12 12 12 12-5.37 12-12S22.63 4 16 4zm0 2c5.52 0 10 4.48 10 10s-4.48 10-10 10S6 21.52 6 16 10.48 6 16 6z" fill="#fff" opacity=".6"/><path d="M16 9l-1.5 4.5H10l3.75 2.73-1.43 4.4L16 18l3.68 2.63-1.43-4.4L22 13.5h-4.5L16 9z" fill="#fff"/></svg>
+      </div>
+      Claude
+    </div>
+    <span class="topbar-model">claude-sonnet-4-5</span>
+    <div class="topbar-menu"><span></span><span></span><span></span></div>
+  </div>
+
+  <div class="chat-area" id="typing-chat">
+    <div class="msg claude">
+      <div class="msg-role">Claude</div>
+      <div class="msg-body">
+        <p>Hello! How can I help you today?</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="input-bar">
+    <div class="input-wrap">
+      <textarea id="user-input" rows="1" placeholder="Message Claude..."></textarea>
+      <button class="send-btn" id="send-btn" disabled>
+        <svg viewBox="0 0 16 16"><path d="M14.5 8L2 2l2.5 6H14.5zM2 14l12.5-6H4.5L2 14z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     STATE 2: CLAUDE ASKING QUESTIONS
+     Shows the full conversation
+═══════════════════════════════════════════ -->
+<div class="state" id="state-questions">
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="claude-icon">
+        <svg viewBox="0 0 32 32" fill="none"><path d="M16 4C9.37 4 4 9.37 4 16s5.37 12 12 12 12-5.37 12-12S22.63 4 16 4zm0 2c5.52 0 10 4.48 10 10s-4.48 10-10 10S6 21.52 6 16 10.48 6 16 6z" fill="#fff" opacity=".6"/><path d="M16 9l-1.5 4.5H10l3.75 2.73-1.43 4.4L16 18l3.68 2.63-1.43-4.4L22 13.5h-4.5L16 9z" fill="#fff"/></svg>
+      </div>
+      Claude
+    </div>
+    <span class="topbar-model">claude-sonnet-4-5</span>
+    <div class="topbar-menu"><span></span><span></span><span></span></div>
+  </div>
+
+  <div class="chat-area">
+    <div class="msg human">
+      <div class="msg-role">You</div>
+      <div class="msg-body">Let's create a Claude skill. I want it to write weekly social media posts in my brand voice. Ask me whatever questions you need to ask to make this skill excellent at what it does.</div>
+    </div>
+    <div class="msg claude">
+      <div class="msg-role">Claude</div>
+      <div class="msg-body" id="questions-body">
+        <p>I'd love to help you build this skill! Here are my questions:</p>
+        <ol>
+          <li id="q1" style="opacity:0">What platforms are you posting to — Instagram, LinkedIn, X, or all three?</li>
+          <li id="q2" style="opacity:0">How would you describe your brand voice — playful, professional, casual, authoritative?</li>
+          <li id="q3" style="opacity:0">What is your niche or industry, and who is your ideal audience?</li>
+          <li id="q4" style="opacity:0">Do you have example posts I can use as style references?</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <div class="input-bar">
+    <div class="input-wrap">
+      <textarea rows="1" placeholder="Message Claude..."></textarea>
+      <button class="send-btn" disabled>
+        <svg viewBox="0 0 16 16"><path d="M14.5 8L2 2l2.5 6H10l4.5 6zM2 14l12.5-6H4.5L2 14z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     STATE 3: SKILLS PANEL (Customize → Skills)
+     Shows the skill installed in the panel
+═══════════════════════════════════════════ -->
+<div class="state" id="state-panel">
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="claude-icon">
+        <svg viewBox="0 0 32 32" fill="none"><path d="M16 4C9.37 4 4 9.37 4 16s5.37 12 12 12 12-5.37 12-12S22.63 4 16 4zm0 2c5.52 0 10 4.48 10 10s-4.48 10-10 10S6 21.52 6 16 10.48 6 16 6z" fill="#fff" opacity=".6"/><path d="M16 9l-1.5 4.5H10l3.75 2.73-1.43 4.4L16 18l3.68 2.63-1.43-4.4L22 13.5h-4.5L16 9z" fill="#fff"/></svg>
+      </div>
+      Claude
+    </div>
+    <span class="topbar-model">Customize</span>
+    <div class="topbar-menu"><span></span><span></span><span></span></div>
+  </div>
+
+  <div style="flex:1; overflow-y:auto; background:#faf9f7;">
+    <div class="panel-section-label">Your Skills</div>
+
+    <div class="skill-item">
+      <div class="skill-icon">✍️</div>
+      <div class="skill-info">
+        <div class="skill-name">Social Media Writer</div>
+        <div class="skill-desc">Writes weekly posts in your brand voice for Instagram, LinkedIn &amp; X</div>
+      </div>
+      <span class="skill-badge">Active</span>
+    </div>
+
+    <div class="panel-section-label" style="padding-top:24px; color:#ccc;">Add a skill</div>
+    <div style="padding: 16px 20px;">
+      <div style="background:#fff; border:1.5px dashed #e0ddd8; border-radius:12px; padding:20px; text-align:center; color:#bbb; font-size:13px;">
+        Tell Claude "Let's create a skill" to add another
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     STATE 4: AUTO-ACTIVATION
+     New chat — skill badge appears automatically
+═══════════════════════════════════════════ -->
+<div class="state" id="state-activate">
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="claude-icon">
+        <svg viewBox="0 0 32 32" fill="none"><path d="M16 4C9.37 4 4 9.37 4 16s5.37 12 12 12 12-5.37 12-12S22.63 4 16 4zm0 2c5.52 0 10 4.48 10 10s-4.48 10-10 10S6 21.52 6 16 10.48 6 16 6z" fill="#fff" opacity=".6"/><path d="M16 9l-1.5 4.5H10l3.75 2.73-1.43 4.4L16 18l3.68 2.63-1.43-4.4L22 13.5h-4.5L16 9z" fill="#fff"/></svg>
+      </div>
+      New chat
+    </div>
+    <span class="topbar-model">claude-sonnet-4-5</span>
+    <div class="topbar-menu"><span></span><span></span><span></span></div>
+  </div>
+
+  <div class="chat-area" id="activate-chat" style="justify-content:flex-end;">
+    <div class="msg human">
+      <div class="msg-role">You</div>
+      <div class="msg-body">Write my social posts for this week. Topic: we just launched a new product feature.</div>
+    </div>
+  </div>
+
+  <div class="skill-activate-banner" id="activate-banner">
+    <div class="banner-icon">✍️</div>
+    <div class="banner-text">
+      <strong>Social Media Writer</strong>
+      Skill activated automatically
+    </div>
+  </div>
+
+  <div class="input-bar">
+    <div class="input-wrap">
+      <textarea rows="1" placeholder="Message Claude..."></textarea>
+      <button class="send-btn" disabled>
+        <svg viewBox="0 0 16 16"><path d="M14.5 8L2 2l2.5 6H14.5zM2 14l12.5-6H4.5L2 14z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── State router ──────────────────────────────────────────────
+  function showState(id) {
+    document.querySelectorAll('.state').forEach(s => s.classList.remove('active'));
+    const el = document.getElementById('state-' + id);
+    if (el) el.classList.add('active');
+  }
+
+  const hash = window.location.hash.replace('#', '') || 'typing';
+  showState(hash);
+
+  // ── State 1: enable send when input has text ──────────────────
+  const userInput = document.getElementById('user-input');
+  const sendBtn   = document.getElementById('send-btn');
+  if (userInput) {
+    userInput.addEventListener('input', () => {
+      sendBtn.disabled = !userInput.value.trim();
+      userInput.style.height = 'auto';
+      userInput.style.height = userInput.scrollHeight + 'px';
+    });
+  }
+
+  // ── State 2: stream in questions one by one ───────────────────
+  if (hash === 'questions') {
+    const questions = ['q1','q2','q3','q4'];
+    let i = 0;
+    function showNext() {
+      if (i < questions.length) {
+        const el = document.getElementById(questions[i]);
+        if (el) {
+          el.style.transition = 'opacity 0.4s ease';
+          el.style.opacity = '1';
+        }
+        i++;
+        setTimeout(showNext, 900);
+      }
+    }
+    setTimeout(showNext, 1200);
+  }
+
+  // ── State 4: show banner after short delay ────────────────────
+  if (hash === 'activate') {
+    setTimeout(() => {
+      const banner = document.getElementById('activate-banner');
+      if (banner) {
+        banner.classList.add('visible');
+        banner.style.transition = 'opacity 0.5s ease';
+      }
+    }, 1500);
+  }
+
+  // ── Expose applyContent for Playwright control ────────────────
+  window.applyContent = function({ state }) {
+    showState(state);
+  };
+</script>
+</body>
+</html>

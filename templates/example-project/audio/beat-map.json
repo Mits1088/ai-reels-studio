@@ -1,0 +1,74 @@
+{
+  "total_duration": 14.500,
+  "beats": [
+    {
+      "id": "beat-01",
+      "scene": 1,
+      "phrase": "What if you could deploy in one click?",
+      "start": 0.000,
+      "end": 2.800,
+      "words": [
+        { "word": "What",   "start": 0.000, "end": 0.320 },
+        { "word": "if",     "start": 0.320, "end": 0.480 },
+        { "word": "you",    "start": 0.500, "end": 0.680 },
+        { "word": "could",  "start": 0.700, "end": 0.960 },
+        { "word": "deploy", "start": 1.000, "end": 1.480 },
+        { "word": "in",     "start": 1.500, "end": 1.600 },
+        { "word": "one",    "start": 1.620, "end": 1.900 },
+        { "word": "click?", "start": 1.920, "end": 2.800 }
+      ],
+      "visual_intent": "Avatar talking head with bold text overlay: ONE CLICK",
+      "asset_refs": ["avatar-talking-head"]
+    },
+    {
+      "id": "beat-02",
+      "scene": 1,
+      "phrase": "No pipelines. No waiting.",
+      "start": 3.000,
+      "end": 5.200,
+      "words": [
+        { "word": "No",        "start": 3.000, "end": 3.300 },
+        { "word": "pipelines.", "start": 3.320, "end": 4.000 },
+        { "word": "No",        "start": 4.200, "end": 4.450 },
+        { "word": "waiting.",   "start": 4.470, "end": 5.200 }
+      ],
+      "visual_intent": "Strike-through text animation on each phrase",
+      "asset_refs": []
+    },
+    {
+      "id": "beat-03",
+      "scene": 2,
+      "phrase": "Just hit this button and you're live.",
+      "start": 5.500,
+      "end": 8.800,
+      "words": [
+        { "word": "Just",    "start": 5.500, "end": 5.780 },
+        { "word": "hit",     "start": 5.800, "end": 6.050 },
+        { "word": "this",    "start": 6.080, "end": 6.350 },
+        { "word": "button",  "start": 6.380, "end": 6.900 },
+        { "word": "and",     "start": 6.950, "end": 7.100 },
+        { "word": "you're",  "start": 7.130, "end": 7.500 },
+        { "word": "live.",   "start": 7.520, "end": 8.800 }
+      ],
+      "visual_intent": "Screen recording: cursor clicks deploy button, loading, success",
+      "asset_refs": ["demo-deploy-button"]
+    },
+    {
+      "id": "beat-04",
+      "scene": 3,
+      "phrase": "Try it free. Link in bio.",
+      "start": 9.200,
+      "end": 14.500,
+      "words": [
+        { "word": "Try",  "start": 9.200,  "end": 9.500  },
+        { "word": "it",   "start": 9.520,  "end": 9.700  },
+        { "word": "free.", "start": 9.720,  "end": 10.300 },
+        { "word": "Link", "start": 10.800, "end": 11.200 },
+        { "word": "in",   "start": 11.220, "end": 11.400 },
+        { "word": "bio.",  "start": 11.420, "end": 14.500 }
+      ],
+      "visual_intent": "Avatar with CTA text overlay and success animation",
+      "asset_refs": ["avatar-talking-head", "support-success-anim"]
+    }
+  ]
+}

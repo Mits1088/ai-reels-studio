@@ -1,0 +1,12 @@
+{
+  "slug": "{{SLUG}}",
+  "title": "{{TITLE}}",
+  "brand": null,
+  "template": "instagram-reel-avatar",
+  "phase": "brief",
+  "status": "initialized",
+  "created": "{{CREATED}}",
+  "updated": "{{CREATED}}",
+  "voice_file": null,
+  "duration_s": null
+}

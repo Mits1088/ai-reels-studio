@@ -1,0 +1,19 @@
+# Reel Generation Pipeline — Python Dependencies
+#
+# Install: pip install -r requirements.txt
+#
+# Core pipeline (required for all projects)
+Pillow>=9.0.0               # Image probing and composition
+ffmpeg-python>=0.2.1        # Audio extraction from video
+requests>=2.28.0            # HTTP client (Whisper API provider)
+
+# Transcription (required for ingest-voice)
+openai-whisper>=20231117    # Local Whisper model (alternative to API)
+
+# B-roll classification (required for broll-pipeline)
+google-genai>=0.4.0         # Gemini Vision API for scene classification
+scenedetect>=0.6.0          # PySceneDetect for video scene splitting
+
+# System tools (must be installed separately, not pip)
+# - ffmpeg + ffprobe: https://ffmpeg.org/download.html
+# - Node.js + npm: for Playwright and Remotion

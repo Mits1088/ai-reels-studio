@@ -1,0 +1,27 @@
+{
+  "total_duration": 14.500,
+  "lanes": {
+    "avatar": [
+      { "beat_id": "beat-01", "start": 0.000, "end": 2.800, "asset": "avatar-talking-head.mp4" },
+      { "beat_id": "beat-04", "start": 9.200, "end": 14.500, "asset": "avatar-talking-head.mp4" }
+    ],
+    "demo": [
+      { "beat_id": "beat-03", "start": 5.500, "end": 8.800, "asset": "deploy-button-screenshot.png", "transition": { "type": "fade", "duration": 0.2 } }
+    ],
+    "support": [
+      { "beat_id": "beat-04", "start": 12.000, "end": 14.500, "asset": "success-animation.mp4" }
+    ],
+    "captions": [
+      { "beat_id": "beat-01", "start": 0.000, "end": 2.800, "text": "ONE CLICK deploy" },
+      { "beat_id": "beat-02", "start": 3.000, "end": 5.200, "text": "No pipelines. No waiting." },
+      { "beat_id": "beat-03", "start": 5.500, "end": 8.800, "text": "Hit this button" },
+      { "beat_id": "beat-04", "start": 9.200, "end": 14.500, "text": "Try it free" }
+    ],
+    "sfx": [
+      { "start": 6.380, "end": 6.900, "asset": "whoosh.mp3", "beat_id": "beat-03" }
+    ],
+    "music": [
+      { "start": 0.000, "end": 14.500, "asset": "bg-music-upbeat.mp3", "volume": 0.15 }
+    ]
+  }
+}
