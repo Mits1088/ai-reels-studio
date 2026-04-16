@@ -1,0 +1,404 @@
+{
+  "_comment": "Beat-component registry. Deterministic lookup: style + beat_classification → component decision. Used by Phase 4b-ii (component mapping) to eliminate per-beat reasoning. Add new beat types here as they appear in reels — do NOT modify existing entries without updating all downstream shot-list examples.",
+  "version": "1.0",
+
+  "classifications": {
+    "emotional_keyword": {
+      "pattern": "Single word or short phrase that IS the emphasis",
+      "examples": ["WRONG", "ZERO", "MORE", "GONE.", "FREE", "DANGEROUS"]
+    },
+    "staccato_claim": {
+      "pattern": "2-5 word declarative with a period feel",
+      "examples": ["No retraining.", "Works on any model.", "Zero accuracy loss."]
+    },
+    "name_reveal": {
+      "pattern": "Introduces a product, feature, or concept name",
+      "examples": ["called TurboQuant", "Jevons' Paradox", "LMArena.ai"]
+    },
+    "number_proof_with_asset": {
+      "pattern": "Stat with visual evidence available",
+      "examples": ["6x less memory + chart exists", "crashed 14% + stock chart"]
+    },
+    "number_proof_no_asset": {
+      "pattern": "Stat with no visual evidence",
+      "examples": ["saved 3 hours", "40% faster"]
+    },
+    "explanation_over_visual": {
+      "pattern": "Describing what a visual shows",
+      "examples": ["It compresses how AI stores data + diagram"]
+    },
+    "direct_address": {
+      "pattern": "Talking to viewer, no visual needed",
+      "examples": ["Here's why.", "But here's what nobody expected"]
+    },
+    "trust_credibility": {
+      "pattern": "Citing authority or source",
+      "examples": ["peer-reviewed at ICLR 2026 + research page"]
+    },
+    "contradiction_negation": {
+      "pattern": "Striking through or negating something",
+      "examples": ["people don't use less", "you're doing it wrong"]
+    },
+    "list_item": {
+      "pattern": "Numbered or bulleted item in a series",
+      "examples": ["Number one: LMArena", "Number two: DesignArena"]
+    },
+    "comparison": {
+      "pattern": "Side-by-side or A vs B",
+      "examples": ["ChatGPT vs Gemini", "before and after"]
+    },
+    "cta": {
+      "pattern": "Call to action",
+      "examples": ["Follow for more", "Comment AI"]
+    },
+    "section_transition": {
+      "pattern": "Gap between major sections",
+      "examples": ["(silence or breath between sections)"]
+    },
+    "hook_opening": {
+      "pattern": "First 2-5 seconds, must stop the scroll",
+      "examples": ["If you're paying for AI tools"]
+    },
+    "reframe_montage": {
+      "pattern": "Summary or multi-source validation",
+      "examples": ["Cheaper AI means AI everywhere"]
+    },
+    "tool_intro_chapter": {
+      "pattern": "New section introducing a tool by name + logo",
+      "examples": ["First up: Pinokio", "Next: Claude Code"]
+    }
+  },
+
+  "component_map": {
+
+    "editorial-authority": {
+      "hook_opening": {
+        "primary": ["ScrollingIconGrid", "OverlayKeyword"],
+        "secondary": [],
+        "avatar_layout": "split-screen",
+        "content_zone": "top 45%",
+        "default_transition": { "enter": "scale-pop-overshoot", "exit": "fade", "enterDur": 5, "exitDur": 3 },
+        "mandatory_extras": ["LogoOverlay if brand is named"],
+        "notes": "ScrollingIconGrid fills top zone. OverlayKeyword sits on top of grid. Avatar split-screen at bottom."
+      },
+      "emotional_keyword": {
+        "primary": ["OverlayKeyword"],
+        "secondary": [],
+        "avatar_layout": "full-screen",
+        "content_zone": "center on face",
+        "default_transition": { "enter": "scale-pop-overshoot", "exit": "fade", "enterDur": 4, "exitDur": 2 },
+        "mandatory_extras": [],
+        "notes": "Text goes ON the avatar. Position: center. autoSize: true recommended."
+      },
+      "staccato_claim": {
+        "primary": ["OverlayKeyword"],
+        "secondary": [],
+        "avatar_layout": "full-screen",
+        "content_zone": "center on face",
+        "default_transition": { "enter": "hard-cut", "exit": "hard-cut", "enterDur": 0, "exitDur": 0 },
+        "mandatory_extras": [],
+        "notes": "Hard cut. Staccato rhythm = no transition animation. Let the words hit."
+      },
+      "name_reveal": {
+        "primary": ["HeroTextCard"],
+        "secondary": [],
+        "avatar_layout": "hidden",
+        "content_zone": "full frame",
+        "default_transition": { "enter": "scale-pop-overshoot", "exit": "fade", "enterDur": 5, "exitDur": 3 },
+        "mandatory_extras": ["LogoOverlay for the named brand/product"],
+        "notes": "Avatar hidden. Full-frame card. ALWAYS add LogoOverlay for the named entity."
+      },
+      "number_proof_with_asset": {
+        "primary": ["FramedImage", "OverlayKeyword"],
+        "secondary": [],
+        "avatar_layout": "split-screen",
+        "content_zone": "top 40-45%",
+        "default_transition": { "enter": "zoom-in", "exit": "fade", "enterDur": 5, "exitDur": 3, "kenBurns": true },
+        "mandatory_extras": ["zoom_moments required — target the specific number in the chart"],
+        "notes": "FramedImage shows the proof. OverlayKeyword echoes the number on the avatar below."
+      },
+      "number_proof_no_asset": {
+        "primary": ["HeroTextCard"],
+        "secondary": [],
+        "avatar_layout": "hidden",
+        "content_zone": "full frame",
+        "default_transition": { "enter": "scale-pop-overshoot", "exit": "fade", "enterDur": 5, "exitDur": 3 },
+        "mandatory_extras": [],
+        "notes": "No proof visual → number as giant text card. Make the number the hero."
+      },
+      "explanation_over_visual": {
+        "primary": ["FramedImage"],
+        "secondary": [],
+        "avatar_layout": "split-screen",
+        "content_zone": "top 40-45%",
+        "default_transition": { "enter": "zoom-in", "exit": "fade", "enterDur": 5, "exitDur": 3, "kenBurns": true },
+        "mandatory_extras": ["zoom_moments required"],
+        "notes": "Avatar talks while diagram sits in top zone. Ken Burns keeps it alive."
+      },
+      "direct_address": {
+        "primary": ["AvatarVideo"],
+        "secondary": [],
+        "avatar_layout": "full-screen",
+        "content_zone": "—",
+        "default_transition": { "enter": "hard-cut", "exit": "hard-cut", "enterDur": 0, "exitDur": 0 },
+        "mandatory_extras": [],
+        "notes": "Pure talking-head. No overlay unless it's a setup for the next beat."
+      },
+      "trust_credibility": {
+        "primary": ["FramedImage", "AnnotationCircle", "BadgePopup"],
+        "secondary": [],
+        "avatar_layout": "split-screen",
+        "content_zone": "top 40-45%",
+        "default_transition": { "enter": "zoom-in", "exit": "fade", "enterDur": 5, "exitDur": 3 },
+        "mandatory_extras": ["zoom_moments targeting the credibility signal (author name, institution logo, citation)"],
+        "notes": "AnnotationCircle circles the key trust signal. BadgePopup echoes the source name."
+      },
+      "contradiction_negation": {
+        "primary": ["OverlayKeyword"],
+        "secondary": [],
+        "avatar_layout": "full-screen",
+        "content_zone": "center on face",
+        "default_transition": { "enter": "scale-pop-overshoot", "exit": "fade", "enterDur": 4, "exitDur": 2 },
+        "mandatory_extras": [],
+        "props_override": { "withStrikethrough": true },
+        "notes": "withStrikethrough: true draws the red line through the word. Pair with FlashReset before this beat."
+      },
+      "list_item": {
+        "primary": ["CardStack", "HeroTextCard"],
+        "secondary": [],
+        "avatar_layout": "hidden",
+        "content_zone": "full frame",
+        "default_transition": { "enter": "slide-stack", "exit": "fade", "enterDur": 8, "exitDur": 3 },
+        "mandatory_extras": ["LogoOverlay for each named tool"],
+        "notes": "CardStack for 3+ items. HeroTextCard sequence for 1-2 items. slide-stack transition for card feel."
+      },
+      "comparison": {
+        "primary": ["ComparisonGrid"],
+        "secondary": [],
+        "avatar_layout": "hidden",
+        "content_zone": "full frame",
+        "default_transition": { "enter": "scale-pop", "exit": "fade", "enterDur": 5, "exitDur": 3 },
+        "mandatory_extras": [],
+        "notes": "Avatar hidden for comparison. Full-frame side-by-side."
+      },
+      "cta": {
+        "primary": ["AvatarVideo", "OverlayKeyword"],
+        "secondary": [],
+        "avatar_layout": "full-screen",
+        "content_zone": "center on face",
+        "default_transition": { "enter": "hard-cut", "exit": "fade", "enterDur": 0, "exitDur": 4 },
+        "mandatory_extras": [],
+        "notes": "Dark background (GradientMesh). OverlayKeyword shows the action word (FOLLOW, COMMENT, SAVE). ProgressRing optional."
+      },
+      "section_transition": {
+        "primary": ["FlashReset"],
+        "secondary": [],
+        "avatar_layout": "hidden",
+        "content_zone": "—",
+        "default_transition": { "enter": "flash-reset", "exit": "hard-cut", "enterDur": 3, "exitDur": 0 },
+        "mandatory_extras": [],
+        "notes": "2-3 frame white flash only. Not a full beat — typically 6-9 frames total."
+      },
+      "reframe_montage": {
+        "primary": ["FramedImage"],
+        "secondary": [],
+        "avatar_layout": "hidden",
+        "content_zone": "full frame",
+        "default_transition": { "enter": "hard-cut", "exit": "hard-cut", "enterDur": 0, "exitDur": 0 },
+        "mandatory_extras": ["Multiple FramedImage entries in rapid sequence (3-5 frames each)"],
+        "notes": "Use multiple sequential FramedImage entries — NOT one image. Each cut reinforces a different proof."
+      },
+      "tool_intro_chapter": {
+        "primary": ["ChapterDivider"],
+        "secondary": [],
+        "avatar_layout": "hidden",
+        "content_zone": "full frame",
+        "default_transition": { "enter": "scale-pop-overshoot", "exit": "fade", "enterDur": 6, "exitDur": 3 },
+        "mandatory_extras": ["Brand logo must be fetched via lib.assets before assembly"],
+        "notes": "ChapterDivider uses the brand logo + tool name. Always fetch the SVG logo first."
+      }
+    },
+
+    "cinematic-presenter": {
+      "hook_opening": {
+        "primary": ["AvatarVideo", "FramedImage"],
+        "secondary": ["LogoOverlay"],
+        "avatar_layout": "hook-reveal",
+        "content_zone": "top portion reveals",
+        "default_transition": { "enter": "zoom-in", "exit": "fade", "enterDur": 6, "exitDur": 3 },
+        "mandatory_extras": ["LogoOverlay with bounce:true, trail:true for energy"],
+        "notes": "Hook-reveal: screenshot fades/reveals in top zone, avatar visible below from frame 0."
+      },
+      "emotional_keyword": {
+        "primary": ["KeywordFadeIn"],
+        "secondary": [],
+        "avatar_layout": "split-screen",
+        "content_zone": "top zone",
+        "default_transition": { "enter": "fade", "exit": "fade", "enterDur": 4, "exitDur": 3 },
+        "mandatory_extras": [],
+        "notes": "Word-level stagger fade. withGlow: true on dark backgrounds."
+      },
+      "staccato_claim": {
+        "primary": ["KeywordFadeIn", "BadgePopup"],
+        "secondary": [],
+        "avatar_layout": "split-screen",
+        "content_zone": "top zone",
+        "default_transition": { "enter": "scale-pop", "exit": "fade", "enterDur": 4, "exitDur": 3 },
+        "mandatory_extras": [],
+        "notes": "BadgePopup for single-stat claims. KeywordFadeIn for multi-word claims."
+      },
+      "name_reveal": {
+        "primary": ["KeywordFadeIn"],
+        "secondary": ["LogoOverlay"],
+        "avatar_layout": "full-screen",
+        "content_zone": "above avatar head",
+        "default_transition": { "enter": "scale-pop", "exit": "fade", "enterDur": 5, "exitDur": 3 },
+        "mandatory_extras": ["LogoOverlay for the named brand"],
+        "notes": "withGlow: true. LogoOverlay appears simultaneously with or just before the name text."
+      },
+      "number_proof_with_asset": {
+        "primary": ["FramedImage", "NumberPopup"],
+        "secondary": [],
+        "avatar_layout": "split-screen",
+        "content_zone": "top 40%",
+        "default_transition": { "enter": "zoom-in", "exit": "fade", "enterDur": 5, "exitDur": 3, "kenBurns": true },
+        "mandatory_extras": ["zoom_moments targeting the specific number"],
+        "notes": "NumberPopup appears at top-left with the stat. FramedImage shows the chart."
+      },
+      "number_proof_no_asset": {
+        "primary": ["NumberPopup"],
+        "secondary": [],
+        "avatar_layout": "full-screen",
+        "content_zone": "top-left or top-center",
+        "default_transition": { "enter": "scale-pop", "exit": "scale-down", "enterDur": 4, "exitDur": 3 },
+        "mandatory_extras": [],
+        "notes": "Avatar full-screen. NumberPopup floats above at top of frame."
+      },
+      "explanation_over_visual": {
+        "primary": ["FramedImage"],
+        "secondary": [],
+        "avatar_layout": "split-screen",
+        "content_zone": "top 40%",
+        "default_transition": { "enter": "zoom-in", "exit": "fade", "enterDur": 5, "exitDur": 3, "kenBurns": true },
+        "mandatory_extras": ["zoom_moments required"],
+        "notes": "Same as editorial — FramedImage in top zone, avatar talking below."
+      },
+      "direct_address": {
+        "primary": ["AvatarVideo"],
+        "secondary": [],
+        "avatar_layout": "full-screen",
+        "content_zone": "—",
+        "default_transition": { "enter": "blur-dissolve", "exit": "fade", "enterDur": 5, "exitDur": 3 },
+        "mandatory_extras": [],
+        "notes": "Avatar anchor. Use blur-dissolve or zoom-through for cinematic feel on return beats."
+      },
+      "trust_credibility": {
+        "primary": ["FramedImage", "BadgePopup"],
+        "secondary": [],
+        "avatar_layout": "split-screen",
+        "content_zone": "top 40%",
+        "default_transition": { "enter": "zoom-in", "exit": "fade", "enterDur": 5, "exitDur": 3 },
+        "mandatory_extras": ["zoom_moments targeting the trust signal"],
+        "notes": "BadgePopup shows source name. AnnotationCircle can be added for extra emphasis."
+      },
+      "contradiction_negation": {
+        "primary": ["StrikethroughSwap"],
+        "secondary": [],
+        "avatar_layout": "full-screen",
+        "content_zone": "center",
+        "default_transition": { "enter": "punch", "exit": "punch-out", "enterDur": 4, "exitDur": 3 },
+        "mandatory_extras": [],
+        "notes": "Old value crossed out, new value slides in. Punch entry for impact."
+      },
+      "list_item": {
+        "primary": ["NumberPopup", "KeywordFadeIn"],
+        "secondary": [],
+        "avatar_layout": "split-screen",
+        "content_zone": "top zone",
+        "default_transition": { "enter": "scale-pop", "exit": "fade", "enterDur": 4, "exitDur": 3 },
+        "mandatory_extras": ["LogoOverlay for each named tool"],
+        "notes": "NumberPopup at number mention. KeywordFadeIn for tool name 0.5-1s later."
+      },
+      "comparison": {
+        "primary": ["ComparisonGrid"],
+        "secondary": [],
+        "avatar_layout": "hidden",
+        "content_zone": "full frame",
+        "default_transition": { "enter": "scale-pop", "exit": "fade", "enterDur": 5, "exitDur": 3 },
+        "mandatory_extras": [],
+        "notes": "Same as editorial."
+      },
+      "cta": {
+        "primary": ["AvatarVideo", "OverlayKeyword"],
+        "secondary": [],
+        "avatar_layout": "full-screen",
+        "content_zone": "center on face",
+        "default_transition": { "enter": "zoom-through", "exit": "fade", "enterDur": 6, "exitDur": 4 },
+        "mandatory_extras": [],
+        "notes": "Dark GradientMesh background. ProgressRing optional countdown. zoom-through entry for energy."
+      },
+      "section_transition": {
+        "primary": ["FlashReset"],
+        "secondary": [],
+        "avatar_layout": "hidden",
+        "content_zone": "—",
+        "default_transition": { "enter": "flash-reset", "exit": "hard-cut", "enterDur": 3, "exitDur": 0 },
+        "mandatory_extras": [],
+        "notes": "Same as editorial."
+      },
+      "reframe_montage": {
+        "primary": ["FramedImage"],
+        "secondary": [],
+        "avatar_layout": "split-screen",
+        "content_zone": "top 40%",
+        "default_transition": { "enter": "hard-cut", "exit": "hard-cut", "enterDur": 0, "exitDur": 0 },
+        "mandatory_extras": ["Multiple FramedImage entries — hard cuts every 2-3 frames"],
+        "notes": "Rapid sequence of different screenshots. Hard cuts only — no transitions in montage."
+      },
+      "tool_intro_chapter": {
+        "primary": ["ChapterDivider"],
+        "secondary": [],
+        "avatar_layout": "hidden",
+        "content_zone": "full frame",
+        "default_transition": { "enter": "scale-pop", "exit": "fade", "enterDur": 6, "exitDur": 3 },
+        "mandatory_extras": ["Brand logo SVG"],
+        "notes": "Same as editorial."
+      }
+    }
+  },
+
+  "mandatory_brand_rule": "Whenever a brand is NAMED in the narration (regardless of beat classification), add a LogoOverlay entry in the overlays lane at that timestamp. This is non-negotiable — text-only brand references are a fitness audit failure.",
+
+  "background_map": {
+    "editorial-authority": {
+      "hook_opening": "solid-brand or ScrollingIconGrid (no Aurora/Beams)",
+      "direct_address": "solid dark #1A1A1A (no GradientMesh)",
+      "number_proof_with_asset": "solid white #FFFFFF",
+      "explanation_over_visual": "solid white #FFFFFF",
+      "trust_credibility": "solid white #FFFFFF",
+      "cta": "solid dark #1A1A1A",
+      "section_transition": "white flash (FlashReset handles this)",
+      "_default": "solid #FFFFFF"
+    },
+    "cinematic-presenter": {
+      "hook_opening": "AuroraBackground (white)",
+      "direct_address": "GradientMesh + SmokeWisp",
+      "number_proof_with_asset": "AuroraBackground",
+      "explanation_over_visual": "AuroraBackground",
+      "trust_credibility": "AuroraBackground",
+      "cta": "GradientMesh + SmokeWisp",
+      "section_transition": "white flash",
+      "_default": "AuroraBackground"
+    }
+  },
+
+  "sfx_map": {
+    "hook_opening": ["@sfx/whoosh on entry", "@sfx/ding per brand logo reveal"],
+    "section_transition": ["@sfx/whip on flash"],
+    "name_reveal": ["@sfx/ding or @sfx/uiSwitch"],
+    "number_proof_with_asset": ["@sfx/mouseClick at zoom moment"],
+    "list_item": ["@sfx/uiSwitch at NumberPopup entry"],
+    "cta": ["@sfx/whoosh on entry"],
+    "tool_intro_chapter": ["@sfx/pageTurn on chapter entry"]
+  }
+}

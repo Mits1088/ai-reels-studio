@@ -1,0 +1,76 @@
+{
+  "id": "cinematic-cta-dark",
+  "style": "cinematic-presenter",
+  "classification": "cta",
+  "description": "Dark GradientMesh background. Avatar full-screen. OverlayKeyword shows action word. Optional ProgressRing countdown.",
+  "notes": "CTA must feel earned and deliberate. Minimum 2.5s dwell time. Dark background separates it clearly from the demo section. ProgressRing adds visual countdown urgency.",
+  "duration_range_s": [2.5, 5.0],
+
+  "timeline_fragment": {
+    "avatar": [
+      {
+        "beat_id": "beat-cta",
+        "start": 0.0,
+        "end": 4.0,
+        "layout": "full-screen",
+        "bgColor": "#111111",
+        "transition_preset": {
+          "enter": "zoom-through",
+          "exit": "fade",
+          "enterDur": 6,
+          "exitDur": 4
+        }
+      }
+    ],
+    "overlays": [
+      {
+        "type": "OverlayKeyword",
+        "beat_id": "beat-cta",
+        "start": 0.4,
+        "end": 3.8,
+        "props": {
+          "text": "FOLLOW",
+          "position": "center-top",
+          "color": "#FFFFFF",
+          "autoSize": true,
+          "shadowStrength": "strong"
+        }
+      }
+    ],
+    "sfx": [
+      {
+        "beat_id": "beat-cta",
+        "start": 0.0,
+        "end": 0.5,
+        "asset": "@sfx/whoosh",
+        "volume": 0.35
+      }
+    ]
+  },
+
+  "optional_additions": {
+    "progress_ring": {
+      "description": "Add ProgressRing countdown to increase urgency",
+      "overlay_entry": {
+        "type": "ProgressRing",
+        "beat_id": "beat-cta",
+        "start": 0.0,
+        "end": 4.0,
+        "props": {
+          "radius": 64,
+          "color": "#D97757",
+          "mode": "countdown",
+          "x": 400,
+          "y": -200
+        }
+      }
+    }
+  },
+
+  "adaptation_notes": [
+    "Replace 'FOLLOW' with actual CTA action word from the script (FOLLOW / COMMENT / SAVE / SUBSCRIBE)",
+    "Adjust end time to match actual CTA beat duration from beat-map.json",
+    "bgColor #111111 ensures dark background — do not use default white here",
+    "zoom-through entry gives cinematic return-to-face energy after demos"
+  ]
+}

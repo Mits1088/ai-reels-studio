@@ -1,0 +1,76 @@
+{
+  "id": "editorial-number-proof",
+  "style": "editorial-authority",
+  "classification": "number_proof_with_asset",
+  "description": "FramedImage in top 40% shows the chart/screenshot. OverlayKeyword on the avatar below echoes the key number. Zoom targets the specific number in the chart.",
+  "notes": "This is the most common proof beat. The screenshot must show the exact number the narrator says. OverlayKeyword is optional but keeps the stat visible even when viewer's eyes drift to avatar.",
+  "duration_range_s": [2.0, 4.0],
+
+  "timeline_fragment": {
+    "demo": [
+      {
+        "beat_id": "beat-XX",
+        "start": 0.0,
+        "end": 3.2,
+        "asset": "proof-screenshot.png",
+        "display": null,
+        "transition_preset": {
+          "enter": "zoom-in",
+          "exit": "fade",
+          "enterDur": 5,
+          "exitDur": 3,
+          "kenBurns": true
+        },
+        "zoom_moments": [
+          {
+            "at": 0.4,
+            "x": 50,
+            "y": 30,
+            "scale": 2.0,
+            "holdFor": 2.4
+          }
+        ],
+        "notes": "Replace zoom_moments coordinates with actual image focal point. x/y are % of frame. Apply letterbox formula for split-screen: frame_y = image_y * 0.57"
+      }
+    ],
+    "avatar": [
+      {
+        "beat_id": "beat-XX",
+        "start": 0.0,
+        "end": 3.2,
+        "layout": "split-screen"
+      }
+    ],
+    "overlays": [
+      {
+        "type": "OverlayKeyword",
+        "beat_id": "beat-XX",
+        "start": 0.3,
+        "end": 3.0,
+        "props": {
+          "text": "6X FASTER",
+          "position": "center",
+          "autoSize": true,
+          "shadowStrength": "strong"
+        }
+      }
+    ],
+    "sfx": [
+      {
+        "beat_id": "beat-XX",
+        "start": 0.4,
+        "end": 0.9,
+        "asset": "@sfx/mouseClick",
+        "volume": 0.25
+      }
+    ]
+  },
+
+  "adaptation_notes": [
+    "Replace 'proof-screenshot.png' with actual asset filename",
+    "Update zoom_moments x/y to target the specific number in the screenshot",
+    "Replace '6X FASTER' in OverlayKeyword with the actual spoken stat",
+    "If no visual proof exists, switch to editorial-number-proof-no-asset pattern instead",
+    "SFX mouseClick fires at the zoom moment — aligns with visual focus snap"
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "id": "editorial-hook-scrolling-grid",
+  "style": "editorial-authority",
+  "classification": "hook_opening",
+  "description": "ScrollingIconGrid fills top 45%, OverlayKeyword sits on top, avatar split-screen below. Brand logo bounces in top-right corner.",
+  "notes": "Use this for any editorial-authority hook where brand names appear in the first 3 seconds. Brands shown in ScrollingIconGrid cards. OverlayKeyword shows the value hook line.",
+  "duration_range_s": [2.0, 3.5],
+
+  "timeline_fragment": {
+    "broll": [
+      {
+        "beat_id": "beat-01",
+        "start": 0.0,
+        "end": 2.8,
+        "asset": "scroll-grid-hook",
+        "display": "responsive",
+        "transition_preset": {
+          "enter": "scale-pop-overshoot",
+          "exit": "fade",
+          "enterDur": 5,
+          "exitDur": 3
+        },
+        "notes": "ScrollingIconGrid renders automatically when asset field is 'scroll-grid-hook' — GenericReelComposition handles this"
+      }
+    ],
+    "avatar": [
+      {
+        "beat_id": "beat-01",
+        "start": 0.0,
+        "end": 2.8,
+        "layout": "split-screen",
+        "transition_preset": {
+          "enter": "hard-cut",
+          "exit": "fade",
+          "enterDur": 0,
+          "exitDur": 3
+        }
+      }
+    ],
+    "overlays": [
+      {
+        "type": "OverlayKeyword",
+        "beat_id": "beat-01",
+        "start": 0.1,
+        "end": 2.6,
+        "props": {
+          "text": "HOOK TEXT HERE",
+          "position": "center-top",
+          "autoSize": true,
+          "shadowStrength": "strong"
+        }
+      },
+      {
+        "type": "LogoOverlay",
+        "beat_id": "beat-01",
+        "start": 0.0,
+        "end": 2.8,
+        "asset": "brands/ProductName.svg",
+        "props": {
+          "position": "top-right",
+          "size": 80,
+          "bounce": true,
+          "bounceAmplitude": 28,
+          "trail": true
+        }
+      }
+    ],
+    "sfx": [
+      {
+        "beat_id": "beat-01",
+        "start": 0.0,
+        "end": 0.5,
+        "asset": "@sfx/whoosh",
+        "volume": 0.3
+      }
+    ]
+  },
+
+  "adaptation_notes": [
+    "Replace 'HOOK TEXT HERE' with the actual hook line from the script",
+    "Replace brands/ProductName.svg with the actual brand SVG path",
+    "Adjust start/end times to match actual beat timing from beat-map.json",
+    "If multiple brands appear in hook, add one LogoOverlay per brand with staggered start times (0.0, 0.4, 0.8)"
+  ]
+}

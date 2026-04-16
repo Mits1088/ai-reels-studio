@@ -1,0 +1,105 @@
+{
+  "$schema_version": 1,
+  "$description": "Pre-built FeatureMockup overlay configs for common product features. Reference any preset by name from a project's timeline.json by using the `feature_mockup` lane (planned) or by copy-pasting the props block into an overlay entry. Each preset includes: label, iconPath (24x24 viewBox SVG path), iconPath2 (optional second stroke), default details bullets. Override any field per-use.",
+
+  "sandboxing": {
+    "label": "Sandboxing",
+    "iconPath": "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
+    "details": ["Isolated containers", "Per-agent execution"],
+    "category": "security",
+    "description": "Shield icon. Use for: secure execution, isolated environments, per-agent sandboxing."
+  },
+
+  "credentials": {
+    "label": "Credentials",
+    "iconPath": "M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4",
+    "details": ["Vault-isolated tokens", "Never enter sandbox"],
+    "category": "security",
+    "description": "Key icon. Use for: credential vaults, secret management, OAuth tokens, API keys."
+  },
+
+  "checkpointing": {
+    "label": "Checkpointing",
+    "iconPath": "M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z",
+    "iconPath2": "M17 21v-8H7v8M7 3v5h8",
+    "details": ["Auto-save state", "Resume after disconnect"],
+    "category": "reliability",
+    "description": "Save/disk icon. Use for: persistent state, autosave, resumable execution."
+  },
+
+  "tracing": {
+    "label": "Tracing",
+    "iconPath": "M3 3v18h18M7 14l4-4 4 4 5-5",
+    "details": ["Every action logged", "Step-by-step replay", "Production debugging"],
+    "category": "observability",
+    "description": "Line chart icon. Use for: execution traces, observability, audit logs."
+  },
+
+  "monitoring": {
+    "label": "Monitoring",
+    "iconPath": "M12 1v22M22 12H2",
+    "iconPath2": "M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12s4.477 10 10 10 10-4.477 10-10z",
+    "details": ["Real-time metrics", "Latency · throughput · errors"],
+    "category": "observability",
+    "description": "Crosshair icon. Use for: monitoring, alerting, metrics dashboards."
+  },
+
+  "scaling": {
+    "label": "Auto-scaling",
+    "iconPath": "M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c2.5-2.5 4-5.5 4-9s-1.5-6.5-4-9m0 18c-2.5-2.5-4-5.5-4-9s1.5-6.5 4-9m-9 9a9 9 0 0 1 9-9",
+    "details": ["Scale on demand", "Pay only what you use"],
+    "category": "infrastructure",
+    "description": "Globe icon. Use for: scaling, distribution, multi-region."
+  },
+
+  "integration": {
+    "label": "Integration",
+    "iconPath": "M9 12h12l-3-3m0 6l3-3M3 12h6m3-9v6m0 12v-6",
+    "details": ["Plug into any stack", "REST · gRPC · webhooks"],
+    "category": "platform",
+    "description": "Connection arrows icon. Use for: integration, plug-and-play, API surfaces."
+  },
+
+  "performance": {
+    "label": "Performance",
+    "iconPath": "M13 2L3 14h9l-1 8 10-12h-9l1-8z",
+    "details": ["Sub-second response", "Optimized hot paths"],
+    "category": "performance",
+    "description": "Lightning bolt icon. Use for: speed, latency, performance wins."
+  },
+
+  "automation": {
+    "label": "Automation",
+    "iconPath": "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z",
+    "iconPath2": "M12 7v5l3 3",
+    "details": ["Hands-off execution", "Schedule and forget"],
+    "category": "platform",
+    "description": "Clock icon. Use for: scheduled jobs, automation, cron-style tasks."
+  },
+
+  "permissions": {
+    "label": "Permissions",
+    "iconPath": "M12 11c0-1.105.895-2 2-2s2 .895 2 2v2H8v-2c0-1.105.895-2 2-2zm-2-2V7a4 4 0 1 1 8 0v2",
+    "iconPath2": "M5 13h14v8H5z",
+    "details": ["Scoped per agent", "Least-privilege default"],
+    "category": "security",
+    "description": "Lock icon. Use for: scoped permissions, least-privilege, RBAC."
+  },
+
+  "encryption": {
+    "label": "Encryption",
+    "iconPath": "M12 15v2m0-9V6m-3 9h6a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2z",
+    "iconPath2": "M9 8V6a3 3 0 0 1 6 0v2",
+    "details": ["End-to-end encrypted", "At rest and in transit"],
+    "category": "security",
+    "description": "Padlock icon. Use for: encryption, secure transit, data at rest."
+  },
+
+  "search": {
+    "label": "Search",
+    "iconPath": "M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0z",
+    "details": ["Semantic indexing", "Sub-second results"],
+    "category": "platform",
+    "description": "Magnifying glass icon. Use for: search, retrieval, RAG indexing."
+  }
+}
