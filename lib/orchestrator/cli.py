@@ -2,14 +2,16 @@
 lib/orchestrator/cli.py — Orchestrator CLI commands.
 
 Commands:
-  status    projects/<slug>              — quick state summary
-  next      projects/<slug>              — legal next actions (compact)
-  diagnose  projects/<slug>              — full diagnostic with gates, artifacts, parity
-  approve   projects/<slug> <gate-id>    — record human approval; set gate
-  reject    projects/<slug> <phase-key>  — record rejection; move to revision
-  resume    projects/<slug>              — show what's needed to resume
-  invalidate projects/<slug> <artifact>  — cascade-invalidate from changed artifact
-  history   projects/<slug>              — show orchestration event log
+  status     projects/<slug>              — quick state summary
+  next       projects/<slug>              — legal next actions (compact)
+  diagnose   projects/<slug>              — full diagnostic with gates, artifacts, parity
+  approve    projects/<slug> <gate-id>    — record human approval; set gate
+  reject     projects/<slug> <phase-key>  — record rejection; move to revision
+  resume     projects/<slug>              — show what's needed to resume
+  invalidate projects/<slug> <artifact>   — cascade-invalidate from changed artifact
+  history    projects/<slug>              — show orchestration event log
+  run        projects/<slug>              — advance through legal phases; pause at claude/human
+  run-phase  projects/<slug> <phase-key>  — run one specific phase
 
 Usage:
   python -m lib.orchestrator <command> projects/<slug> [args]
@@ -26,6 +28,7 @@ from .transitions import compute_next_actions
 from .validators import validate_phase_preconditions, check_required_artifacts
 from .invalidation import invalidate_from_change
 from .events import log_event, read_events
+from .results import ExecResult, ExecStatus
 from .spec import PHASES, PARITY_REQUIRED_BEFORE
 
 
@@ -413,6 +416,129 @@ def cmd_history(project_dir: Path, tail: int = 10) -> int:
     return 0
 
 
+# ── run ───────────────────────────────────────────────────────────────────
+
+def cmd_run(project_dir: Path, max_phases: int | None = None) -> int:
+    """
+    Advance the project from its current state.
+    Runs code phases automatically; pauses at Claude or human phases.
+    """
+    from .runner import Runner
+
+    snap = load_snapshot(project_dir)
+    print(f"{BOLD('Run:')} {snap.slug}  [{state_label(snap.orchestration_state)}]")
+    print()
+
+    runner = Runner()
+    report = runner.run(project_dir, max_phases=max_phases)
+
+    # Print each phase result
+    for result in report.results:
+        _print_exec_result(result)
+
+    print()
+    print(f"  {BOLD('Phases run:')} {report.phases_run}  "
+          f"{BOLD('Succeeded:')} {report.phases_succeeded}  "
+          f"{BOLD('Status:')} {_status_color(report.final_status)(report.final_status.value)}")
+
+    # Print work order or human action
+    if report.terminal_work_order:
+        print()
+        print(report.terminal_work_order.render())
+    elif report.terminal_human_action:
+        print()
+        print(report.terminal_human_action.render())
+
+    if report.error_message:
+        print(f"\n  {RED('Error:')} {report.error_message}")
+
+    return 0 if report.final_status in (
+        ExecStatus.SUCCESS,
+        ExecStatus.PAUSED_FOR_CLAUDE,
+        ExecStatus.PAUSED_FOR_HUMAN,
+        ExecStatus.SKIPPED,
+    ) else 1
+
+
+# ── run-phase ──────────────────────────────────────────────────────────────
+
+def cmd_run_phase(project_dir: Path, phase_key: str) -> int:
+    """Run one specific phase. Validates preconditions first."""
+    from .runner import Runner
+    from .results import ExecStatus
+
+    snap = load_snapshot(project_dir)
+    spec = PHASES.get(phase_key)
+    phase_name = spec.name if spec else phase_key
+
+    print(f"{BOLD('Run phase:')} {phase_name} ({phase_key})")
+    print(f"  Project: {snap.slug}  [{state_label(snap.orchestration_state)}]")
+    print()
+
+    runner = Runner()
+    result = runner.run_phase(project_dir, phase_key)
+
+    _print_exec_result(result)
+
+    if result.work_order:
+        print()
+        print(result.work_order.render())
+    elif result.human_action:
+        print()
+        print(result.human_action.render())
+
+    if result.error:
+        print(f"\n  {RED('Error:')} {result.error}")
+
+    return 0 if result.status in (
+        ExecStatus.SUCCESS,
+        ExecStatus.PAUSED_FOR_CLAUDE,
+        ExecStatus.PAUSED_FOR_HUMAN,
+        ExecStatus.SKIPPED,
+    ) else 1
+
+
+# ── shared result printer ──────────────────────────────────────────────────
+
+def _print_exec_result(result: "ExecResult") -> None:  # type: ignore[name-defined]
+    from .results import ExecStatus
+    icon_map = {
+        ExecStatus.SUCCESS:           GREEN("✓"),
+        ExecStatus.PAUSED_FOR_CLAUDE: YELLOW("⏸"),
+        ExecStatus.PAUSED_FOR_HUMAN:  YELLOW("⏸"),
+        ExecStatus.FAILED:            RED("✗"),
+        ExecStatus.BLOCKED:           RED("◻"),
+        ExecStatus.SKIPPED:           DIM("–"),
+    }
+    icon = icon_map.get(result.status, "?")
+    dur = DIM(f" ({result.duration_s:.1f}s)") if result.duration_s >= 0.1 else ""
+    print(f"  {icon}  {result.phase_name}  [{result.status.value}]{dur}")
+
+    if result.gate_set:
+        print(f"     {GREEN(f'Gate set: {result.gate_set}')}")
+
+    if result.status == ExecStatus.PAUSED_FOR_CLAUDE:
+        print(f"     {YELLOW('Paused for Claude — work order below.')}")
+    elif result.status == ExecStatus.PAUSED_FOR_HUMAN:
+        print(f"     {YELLOW('Paused for human — action checklist below.')}")
+    elif result.status == ExecStatus.FAILED and result.error:
+        print(f"     {RED(result.error[:120])}")
+    elif result.status == ExecStatus.BLOCKED and result.error:
+        first_line = result.error.split("\n")[0]
+        print(f"     {RED(first_line)}")
+
+
+def _status_color(status: "ExecStatus"):  # type: ignore[name-defined]
+    from .results import ExecStatus
+    if status == ExecStatus.SUCCESS:
+        return GREEN
+    if status in (ExecStatus.PAUSED_FOR_CLAUDE, ExecStatus.PAUSED_FOR_HUMAN):
+        return YELLOW
+    if status in (ExecStatus.FAILED, ExecStatus.BLOCKED):
+        return RED
+    return DIM
+
+
 # ── main entrypoint ────────────────────────────────────────────────────────
 
 def main(argv: list[str] | None = None) -> int:
@@ -462,6 +588,17 @@ def main(argv: list[str] | None = None) -> int:
     _add_project(p)
     p.add_argument("--tail", type=int, default=10, help="Number of events to show")
 
+    # run
+    p = sub.add_parser("run", help="Advance through legal phases; pause at Claude/human")
+    _add_project(p)
+    p.add_argument("--max-phases", type=int, default=None,
+                   help="Max phases to advance in one call")
+
+    # run-phase
+    p = sub.add_parser("run-phase", help="Run one specific phase by key")
+    _add_project(p)
+    p.add_argument("phase_key", help="Phase key (e.g. qa-reel, render, assemble-reel)")
+
     args = parser.parse_args(argv)
 
     project_dir = args.project_dir
@@ -486,6 +623,10 @@ def main(argv: list[str] | None = None) -> int:
             return cmd_invalidate(project_dir, args.artifact)
         elif args.cmd == "history":
             return cmd_history(project_dir, tail=args.tail)
+        elif args.cmd == "run":
+            return cmd_run(project_dir, max_phases=getattr(args, "max_phases", None))
+        elif args.cmd == "run-phase":
+            return cmd_run_phase(project_dir, args.phase_key)
         else:
             parser.print_help()
             return 1
