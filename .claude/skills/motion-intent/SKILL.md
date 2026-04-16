@@ -56,10 +56,11 @@ Do not use this skill for:
 This skill must follow these global rule files in addition to its local instructions:
 
 - `.claude/rules/reel-workflow.md` — preset vocabulary, duration bounds
-- `.claude/rules/visual-style.md` — motion language system, 4 beat categories, gap ownership, flash budget
+- `.claude/rules/motion-grammar.md` — **read first** — motion modes, anti-patterns, stillness doctrine, beat-level examples
+- `.claude/rules/visual-style.md` — gap ownership, flash budget, background seams
 - `.claude/rules/style-profiles.md` — cinematic-presenter vs editorial-authority motion defaults
-- `styles/cinematic-presenter.md` — motion language, transition defaults, Ken Burns
-- `styles/editorial-authority.md` — motion language, hard cuts, no ambient motion
+- `styles/cinematic-presenter.md` — motion defaults, transition table, background mapping
+- `styles/editorial-authority.md` — hard cuts, no ambient motion
 
 ### Rule precedence
 
@@ -141,6 +142,41 @@ This declaration gates which defaults, presets, and budgets apply throughout the
 
 ---
 
+## Creative Intent Summary — Required
+
+Before writing any motion direction, produce a 6-field Creative Intent Summary (template in `CLAUDE.md` → "Creative Intent Summary" section) and wait for user confirmation.
+
+**Trigger:** any new motion-intent document, or any revision that changes motion modes, beat categories, or the overall motion language (e.g. shifting from ambient-heavy to still-first, changing entry presets across a section).
+
+The summary must name: the specific motion problem being solved (e.g. ambient overrun, stacked motion on proof beats), which motion patterns are validated and must not change, what specific mode or preset changes are being made and why, the main anti-pattern risk from `motion-grammar.md`, the relevant feedback entries (taste-rules as tie-breaks only), and what the still-mode percentage and ambient-mode beat count should be after the change.
+
+Do not proceed to motion mode selection until the summary is confirmed.
+
+---
+
+## Motion Mode Selection
+
+Before assigning entry presets or beat categories, assign exactly one **motion mode** to every beat. The motion mode governs what happens during the hold — which is where most motion fatigue originates.
+
+Full definitions and selection algorithm: `.claude/rules/motion-grammar.md` → The Four Motion Modes.
+
+| Mode | One-line definition | Default for |
+|---|---|---|
+| `still` | No camera motion during the hold | **Body default** — short beats, annotation beats, return beats, any beat after a punchy entry |
+| `ambient` | Slow drift toward focal point (~1.0 → 1.015–1.02) | Long holds (>2.0s) with a named focal point and no other motion — opt-in only |
+| `motivated` | Zoom tied to a specific narration target (pre-defined zoom coordinates) | Beats where narrator names a UI element or stat; coordinates must exist in Phase 4b-iii |
+| `transition-led` | Motion lives in the entry transition; hold is still | Short beats (<2s); after high-energy edit points; when reel is ambient-heavy |
+
+**Selection order:** short beat? → `still`/`transition-led`. Named narration target with coordinates? → `motivated`. Long hold with focal point, no competing motion? → `ambient`. Default: `still`.
+
+**Hard rules:**
+- Do not stack `zoom-in` entry preset + ambient drift hold on the same beat (Stacked Motion anti-pattern)
+- Do not assign `ambient` to holds shorter than 2.0s (Drift Without Purpose anti-pattern)
+- `motivated` requires pre-defined zoom coordinates from Phase 4b-iii — no improvised zoom targets at this phase
+- Hook motion modes are set by hook-grammar.md archetypes and do not constrain body beat defaults
+
+---
+
 ## The Four Beat Categories
 
 Every beat belongs to exactly one category. Each has a defined motion principle.
@@ -151,7 +187,7 @@ Every beat belongs to exactly one category. Each has a defined motion principle.
 | Phase | Motion |
 |---|---|
 | Entry | Subtle scale settle (1.03-1.05 → 1.00 over 4-8 frames) |
-| Hold | Natural speech motion + slow push-in Ken Burns (1.0 → 1.02) |
+| Hold | `still` by default — natural speech motion is sufficient. Assign `ambient` only if hold >2.5s and there is a specific focal point to drift toward (not generic drift). |
 | Accent | Spoken emphasis word — no visual effects unless also a visual reveal |
 | Exit | Hold last frame or soft opacity ease |
 
@@ -161,7 +197,7 @@ Every beat belongs to exactly one category. Each has a defined motion principle.
 | Phase | Motion |
 |---|---|
 | Entry | clipPath wipe from top OR fast scale (1.08 → 1.00 over 5 frames) |
-| Hold | Slow Ken Burns toward focal point. If clip has cursor/typing, clip handles hold |
+| Hold | Assign `motivated` if zoom_moment coordinates pre-defined in Phase 4b-iii. Assign `ambient` only if hold >2.0s, no zoom_moment fires, and there is a clear focal point. Assign `still` if clip has cursor/typing motion — the clip handles hold. Default: `still`. |
 | Accent | 2-frame scale pulse on container (1.0 → 1.02 → 1.0). One per beat max |
 | Exit | Opacity 1 → 0 over 3-4 frames, or clipPath reverse |
 
@@ -282,10 +318,11 @@ Reserve the flash for the single most important moment — typically the hook la
 For every beat, produce a row in this table:
 
 ```markdown
-| Beat | Category | Hero Motion | Support Motion | Accent | Enter Preset | enterDur | Exit Preset | exitDur | Gap Owner | Notes |
-|---|---|---|---|---|---|---|---|---|---|---|
-| beat-01a | demo | wipe-up reveal | avatar settle below | — | wipe-up | 5 | fade | 3 | — | hook opening |
-| beat-02 | avatar | scale settle 1.03→1.0 | caption lock | emphasis word "free" | fade | 4 | fade | 2 | beat-02 owns gap to beat-03 | setup |
+| Beat | Category | Motion Mode | Hero Motion | Support Motion | Accent | Enter Preset | enterDur | Exit Preset | exitDur | Gap Owner | Notes |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| beat-01a | demo | transition-led | wipe-up reveal | avatar settle below | — | wipe-up | 5 | fade | 3 | — | hook opening |
+| beat-02 | avatar | still | scale settle 1.03→1.0 | caption lock | emphasis word "free" | fade | 4 | fade | 2 | beat-02 owns gap to beat-03 | setup — pivot line, face is anchor |
+| beat-04 | demo | motivated | zoom→x:44,y:20 scale:1.9 | caption lock | zoom fires at 0.4s | wipe-up | 5 | fade | 3 | — | narrator names specific stat |
 ```
 
 ### Column definitions
@@ -294,7 +331,8 @@ For every beat, produce a row in this table:
 |---|---|
 | **Beat** | Beat ID from beat-map |
 | **Category** | avatar / demo / concept-proof / return |
-| **Hero Motion** | Primary visual event (wipe, scale entrance, focus crop) |
+| **Motion Mode** | still / ambient / motivated / transition-led — from motion-grammar.md selection |
+| **Hero Motion** | Primary visual event (wipe, scale entrance, focus crop, or zoom_moment detail) |
 | **Support Motion** | Secondary element (avatar settle, divider fade, caption lock) |
 | **Accent** | Micro-event on emphasis word (scale pulse, opacity flash, SFX hit) or "—" |
 | **Enter Preset** | Exact preset name from vocabulary above |
@@ -302,7 +340,7 @@ For every beat, produce a row in this table:
 | **Exit Preset** | Exact preset name from vocabulary above |
 | **exitDur** | Frames (2-4) |
 | **Gap Owner** | Which beat owns the gap after this beat, or "—" if no gap |
-| **Notes** | Editorial reasoning, background seam notes |
+| **Notes** | Motion mode justification for ambient/motivated; background seam notes |
 
 ---
 
@@ -353,7 +391,7 @@ Before presenting the motion intent, verify:
 ### Style compliance
 - [ ] Style profile declared at top of document
 - [ ] If editorial-authority: no Ken Burns, no ambient motion, hard-cut default
-- [ ] If cinematic-presenter: Ken Burns on static content, ambient breathe on pauses
+- [ ] If cinematic-presenter: ambient motion is opt-in — every `ambient` or `motivated` beat has a documented reason in the Notes column; no beats have stacked zoom-in entry + ambient hold
 
 ---
 
@@ -407,6 +445,20 @@ Before presenting the motion intent, verify:
 - Gap ownership: [PASS/FAIL]
 - Transition variety: [X] types [PASS/FAIL]
 - Background seams: [count] defined [PASS/FAIL]
+- Stacked Motion check: no zoom-in entry + ambient hold on same beat [PASS/FAIL]
+- Ambient motion justified: all ambient/motivated beats have documented reason [PASS/FAIL]
+
+---
+
+## Motion Review
+
+Every entry must name a **specific beat ID** and a **specific reason tied to that beat's content**. Generic phrases ("felt right", "best fit", "to add energy") are not acceptable — if the reason could apply to any beat, rewrite it.
+
+**Still beats:** [name 2–3 beats with still mode — beat ID + one specific reason tied to what is on screen or what the narrator says at that moment. Example: "beat-02: avatar pivot line — face is the whole message, drift competes with eye contact; beat-07: return beat after proof section — the scale settle IS the energy reset"]
+**Motion doing real work:** [name 1–2 beats where the mode improves comprehension or proof clarity — beat ID + what specifically the motion directs attention to. Example: "beat-05: motivated zoom arrives at the memory-comparison bar at the exact moment narrator says '6x less memory' — viewer eye is already at the number"; "beat-09: transition-led wipe-up carries the demo's kinetic energy, hold settles so the UI is readable"]
+**Motion reduced:** [name 1–2 beats where motion was downgraded from what old defaults would have produced — beat ID + what was removed and why it was wrong. Example: "beat-03: hold is only 1.1s — ambient drift at that duration looks unstable; assigned still"; "beat-06: removed ambient from proof screenshot — drift would shift the pricing row off-center while narrator reads the value aloud"]
+
+If "motion doing real work" cannot be filled with specific beat IDs and specific narration references, the reel's motion needs review before user presentation.
 ```
 
 ---

@@ -65,6 +65,16 @@ It is about making the viewer keep watching.
 
 ---
 
+## Creative Intent Summary — Required When Structure Changes
+
+If this assembly represents a **material structural change** — new beat layout, major component revision, new proof method, or significant reorganization of the timeline — produce a 6-field Creative Intent Summary (template in `CLAUDE.md` → "Creative Intent Summary" section) and wait for user confirmation before proceeding.
+
+**Material structural change means:** adding, removing, or reordering beats; changing a component from one visual role to another; changing the proof method for a beat; changing avatar layout across a section. It does not mean: adjusting a zoom coordinate, tweaking an SFX level, fixing a missing asset reference.
+
+**Not required for:** first assembly from an approved shot-list and motion-intent (those approvals already served as the Creative Intent confirmation). Required when assembly diverges from the approved blueprint.
+
+---
+
 ## Retention-First Principles
 
 These principles override default “clean demo” instincts.

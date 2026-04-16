@@ -8,11 +8,20 @@ training data and repo rules/skills/assembly.
 Usage:
     python training/derive_style_pack.py
     python training/derive_style_pack.py --example training/references/nicholas-processed/training-example.json
+    python training/derive_style_pack.py --only taste-rules
+    python training/derive_style_pack.py --only template-registry,rhythm-bounds
 
 Outputs (to training/derived/):
     template-registry.json   — template definitions with avatar/split/caption/bg behavior
     rhythm-bounds.json       — min/max thresholds for QA validation
     caption-modes.json       — headline mode spec, suppression rules, emphasis rules
+    taste-rules.json         — qualitative taste guidance: hook patterns, proof patterns, anti-patterns
+                               Confidence is LOW when n_examples < 3. Read alongside creative-feedback.json.
+
+SPARSE DATA WARNING:
+    Taste rules derived from fewer than 3 complete, annotated examples are LOW CONFIDENCE.
+    They inform planning but should not override creative-feedback.json or body-grammar rules.
+    Add more annotated examples to raise confidence. See training/README-feedback-annotation.md.
 """
 
 import argparse
@@ -382,10 +391,236 @@ def derive_caption_modes(examples):
     return result
 
 
+def _load_reference_strengths():
+    """Return {creator: reference_strength} from training-index.json."""
+    if not INDEX_PATH.exists():
+        return {}
+    with open(INDEX_PATH) as f:
+        idx = json.load(f)
+    return {entry["creator"]: entry.get("reference_strength", "unrated")
+            for entry in idx.get("examples", [])}
+
+
+def _evidence_type(ta):
+    """Map annotation_source to evidence_type string."""
+    src = ta.get("annotation_source", "")
+    return {"human": "human_annotation", "mixed": "mixed"}.get(src, "machine_inferred")
+
+
+def _make_entry(text, field, creator, ta, ref_strength):
+    """Build a pattern entry with full provenance."""
+    return {
+        field: text,
+        "source_example": creator,
+        "evidence_type": _evidence_type(ta),
+        "reference_strength": ref_strength,
+    }
+
+
+def derive_taste_rules(examples):
+    """
+    Aggregate qualitative taste guidance from taste_annotation blocks.
+
+    Positive pattern lists (hook, proof, body, motion, caption, creative_principles)
+    are populated only from examples with reference_strength == "strong".  This
+    prevents a single creator's pacing or style from becoming the system default
+    via an "unrated" or "weak" example.
+
+    Anti-patterns are populated from ALL reference strengths — weak examples are
+    valuable precisely because they teach what not to repeat.
+
+    Per-entry provenance fields:
+        evidence_type      — human_annotation | machine_inferred | mixed
+        source_example     — creator identifier from meta.creator
+        reference_strength — strong | weak | unrated (from training-index.json)
+
+    Top-level confidence levels (based on n_annotated strong examples):
+        high   — 3+ complete/partial annotated strong examples
+        medium — 2
+        low    — 0 or 1  (sparse data warning active)
+    """
+    ref_strengths = _load_reference_strengths()
+
+    # Only strongly-annotated examples contribute to positive patterns
+    strong_annotated = [
+        ex for ex in examples
+        if ex.get("taste_annotation", {}).get("annotation_completeness") in ("complete", "partial")
+        and ref_strengths.get(ex["meta"]["creator"], "unrated") == "strong"
+    ]
+    # All annotated examples (any reference_strength) contribute anti-patterns
+    all_annotated = [
+        ex for ex in examples
+        if ex.get("taste_annotation", {}).get("annotation_completeness") in ("complete", "partial")
+    ]
+
+    n = len(strong_annotated)
+    confidence = "high" if n >= 3 else "medium" if n == 2 else "low"
+
+    hook_patterns = []
+    proof_patterns = []
+    body_patterns = []
+    motion_patterns = []
+    caption_patterns = []
+    anti_patterns = []
+    creative_principles = []
+    why_works_notes = []
+
+    for ex in strong_annotated:
+        ta = ex.get("taste_annotation", {})
+        creator = ex["meta"]["creator"]
+        ref = ref_strengths.get(creator, "unrated")
+
+        def entry(text, field="pattern"):
+            return _make_entry(text, field, creator, ta, ref)
+
+        if ta.get("why_it_works"):
+            why_works_notes.append(entry(ta["why_it_works"], "note"))
+        if ta.get("hook_strength_reason"):
+            hook_patterns.append(entry(ta["hook_strength_reason"], "principle"))
+        if ta.get("proof_quality_notes"):
+            proof_patterns.append(entry(ta["proof_quality_notes"], "principle"))
+        if ta.get("body_variation_reason"):
+            body_patterns.append(entry(ta["body_variation_reason"], "principle"))
+        if ta.get("motion_quality_notes"):
+            motion_patterns.append(entry(ta["motion_quality_notes"], "principle"))
+        if ta.get("caption_quality_notes"):
+            caption_patterns.append(entry(ta["caption_quality_notes"], "principle"))
+
+        for pattern in ta.get("repeatable_patterns", []):
+            p_lower = pattern.lower()
+            e = entry(pattern)
+            if any(w in p_lower for w in ["hook", "first", "open", "scroll", "stop"]):
+                hook_patterns.append(e)
+            elif any(w in p_lower for w in ["proof", "screenshot", "evidence", "visual", "show"]):
+                proof_patterns.append(e)
+            elif any(w in p_lower for w in ["motion", "zoom", "still", "ambient", "drift", "camera"]):
+                motion_patterns.append(e)
+            elif any(w in p_lower for w in ["caption", "suppres", "text overlay", "subtitle"]):
+                caption_patterns.append(e)
+            else:
+                body_patterns.append(e)
+
+        for takeaway in ta.get("creative_takeaways", []):
+            creative_principles.append(entry(takeaway, "principle"))
+
+    # Anti-patterns: all annotated regardless of reference_strength
+    for ex in all_annotated:
+        ta = ex.get("taste_annotation", {})
+        creator = ex["meta"]["creator"]
+        ref = ref_strengths.get(creator, "unrated")
+        for pattern in ta.get("avoid_patterns", []):
+            anti_patterns.append(_make_entry(pattern, "pattern", creator, ta, ref))
+
+    sparse_warning = (
+        "SPARSE DATA WARNING: Positive taste rules are derived from fewer than 3 strongly-rated "
+        "annotated examples. Confidence is LOW. These rules may influence candidate ranking "
+        "but must not override creative-feedback.json entries, establish default hook/body "
+        "templates, or block choices that creative-feedback.json permits. "
+        "See training/README-feedback-annotation.md to raise confidence."
+    ) if confidence == "low" else None
+
+    usage_constraints = {
+        "low": {
+            "allowed": [
+                "influence candidate ranking in component and hook selection",
+                "suggest alternative hook angles when creative-feedback.json is silent",
+                "inform anti-pattern checks before finalizing any section"
+            ],
+            "blocked": [
+                "override any entry in creative-feedback.json",
+                "establish a default hook archetype or body template",
+                "block a component or motion choice that creative-feedback.json permits",
+                "set planning defaults for script, shot-list, or motion-intent phases"
+            ]
+        },
+        "medium": {
+            "allowed": [
+                "all low-confidence uses",
+                "inform soft preference defaults when creative-feedback.json is silent on a topic"
+            ],
+            "blocked": [
+                "override hard_rules in creative-feedback.json",
+                "establish mandatory templates or required ordering"
+            ]
+        },
+        "high": {
+            "allowed": [
+                "all medium-confidence uses",
+                "treated on par with soft_preferences in creative-feedback.json when not contradicted"
+            ],
+            "blocked": [
+                "override hard_rules in creative-feedback.json"
+            ]
+        }
+    }
+
+    # Summary of how each example contributes (for transparency)
+    contribution_map = {}
+    for ex in examples:
+        creator = ex["meta"]["creator"]
+        ta = ex.get("taste_annotation", {})
+        completeness = ta.get("annotation_completeness", "none")
+        ref = ref_strengths.get(creator, "unrated")
+        if ref == "strong" and completeness in ("complete", "partial"):
+            role = "positive_patterns_and_anti_patterns"
+        elif completeness in ("complete", "partial"):
+            role = "anti_patterns_only"
+        else:
+            role = "no_contribution_until_annotated"
+        contribution_map[creator] = {
+            "reference_strength": ref,
+            "annotation_completeness": completeness,
+            "contribution": role,
+        }
+
+    result = {
+        "_derived_from": [ex["meta"]["source_video"] for ex in examples],
+        "_annotated_examples": [ex["meta"]["creator"] for ex in strong_annotated],
+        "_derived_at": "auto-generated by derive_style_pack.py",
+        "_confidence": confidence,
+        "_n_annotated": n,
+        "_sparse_data_warning": sparse_warning,
+        "_usage_note": (
+            "Read alongside memory/creative-feedback.json (first-person accumulated taste) "
+            "and .claude/rules/body-grammar.md (structural rules). "
+            "This file captures WHAT makes liked reference reels work — third-person patterns "
+            "extracted from external reels. creative-feedback.json wins when they conflict "
+            "unless this file's _confidence is 'high'."
+        ),
+        "_usage_constraints": usage_constraints,
+        "_contribution_by_example": contribution_map,
+        "why_it_works": why_works_notes,
+        "hook_patterns": hook_patterns,
+        "proof_patterns": proof_patterns,
+        "body_patterns": body_patterns,
+        "motion_patterns": motion_patterns,
+        "caption_patterns": caption_patterns,
+        "anti_patterns": anti_patterns,
+        "creative_principles": creative_principles,
+    }
+
+    return result
+
+
+ALL_OUTPUTS = ["template-registry", "rhythm-bounds", "caption-modes", "taste-rules"]
+
+
 def main():
     parser = argparse.ArgumentParser(description="Derive style pack from training examples")
     parser.add_argument("--example", help="Path to specific training-example.json")
+    parser.add_argument(
+        "--only",
+        help="Comma-separated list of outputs to regenerate. "
+             f"Options: {', '.join(ALL_OUTPUTS)}",
+    )
     args = parser.parse_args()
+
+    only = set(x.strip() for x in args.only.split(",")) if args.only else set(ALL_OUTPUTS)
+    invalid = only - set(ALL_OUTPUTS)
+    if invalid:
+        print(f"Unknown --only values: {', '.join(sorted(invalid))}")
+        print(f"Valid options: {', '.join(ALL_OUTPUTS)}")
+        sys.exit(1)
 
     DERIVED_DIR.mkdir(exist_ok=True)
 
@@ -396,32 +631,53 @@ def main():
         sys.exit(1)
     print(f"  Loaded {len(examples)} example(s)")
 
-    print("\nDeriving template registry...")
-    registry = derive_template_registry(examples)
-    registry_path = DERIVED_DIR / "template-registry.json"
-    with open(registry_path, "w", encoding="utf-8") as f:
-        json.dump(registry, f, indent=2, ensure_ascii=False)
-    print(f"  {len(registry['templates'])} templates → {registry_path}")
+    if "template-registry" in only:
+        print("\nDeriving template registry...")
+        registry = derive_template_registry(examples)
+        registry_path = DERIVED_DIR / "template-registry.json"
+        with open(registry_path, "w", encoding="utf-8") as f:
+            json.dump(registry, f, indent=2, ensure_ascii=False)
+        print(f"  {len(registry['templates'])} templates → {registry_path}")
 
-    print("\nDeriving rhythm bounds...")
-    bounds = derive_rhythm_bounds(examples)
-    bounds_path = DERIVED_DIR / "rhythm-bounds.json"
-    with open(bounds_path, "w", encoding="utf-8") as f:
-        json.dump(bounds, f, indent=2, ensure_ascii=False)
-    print(f"  {len(bounds['metric_bounds'])} metrics → {bounds_path}")
+    if "rhythm-bounds" in only:
+        print("\nDeriving rhythm bounds...")
+        bounds = derive_rhythm_bounds(examples)
+        bounds_path = DERIVED_DIR / "rhythm-bounds.json"
+        with open(bounds_path, "w", encoding="utf-8") as f:
+            json.dump(bounds, f, indent=2, ensure_ascii=False)
+        print(f"  {len(bounds['metric_bounds'])} metrics → {bounds_path}")
 
-    print("\nDeriving caption modes...")
-    captions = derive_caption_modes(examples)
-    captions_path = DERIVED_DIR / "caption-modes.json"
-    with open(captions_path, "w", encoding="utf-8") as f:
-        json.dump(captions, f, indent=2, ensure_ascii=False)
-    print(f"  {len(captions['modes'])} modes → {captions_path}")
+    if "caption-modes" in only:
+        print("\nDeriving caption modes...")
+        captions = derive_caption_modes(examples)
+        captions_path = DERIVED_DIR / "caption-modes.json"
+        with open(captions_path, "w", encoding="utf-8") as f:
+            json.dump(captions, f, indent=2, ensure_ascii=False)
+        print(f"  {len(captions['modes'])} modes → {captions_path}")
+
+    if "taste-rules" in only:
+        print("\nDeriving taste rules...")
+        taste = derive_taste_rules(examples)
+        taste_path = DERIVED_DIR / "taste-rules.json"
+        with open(taste_path, "w", encoding="utf-8") as f:
+            json.dump(taste, f, indent=2, ensure_ascii=False)
+        n_patterns = sum(
+            len(taste[k])
+            for k in ["hook_patterns", "proof_patterns", "body_patterns",
+                       "motion_patterns", "caption_patterns", "anti_patterns",
+                       "creative_principles"]
+        )
+        print(f"  {n_patterns} patterns ({taste['_confidence']} confidence, "
+              f"{taste['_n_annotated']} annotated) → {taste_path}")
+        if taste["_sparse_data_warning"]:
+            print(f"\n  ⚠  {taste['_sparse_data_warning']}")
 
     print("\nDone. Derived artifacts in:", DERIVED_DIR)
     print("\nNext: Reference these files from:")
     print("  - styles/proof-escalation-editorial.md")
     print("  - .claude/rules/template-grammar.md")
     print("  - .claude/rules/qa-gates.md (validation thresholds)")
+    print("  - training/derived/taste-rules.json (consult before planning phases)")
 
 
 if __name__ == "__main__":

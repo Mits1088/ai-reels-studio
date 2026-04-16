@@ -863,3 +863,342 @@ def check_overlay_positioning(timeline: dict) -> list[Finding]:
             ))
 
     return findings
+
+
+# ── Creative Freshness ─────────────────────────────────────────────────────────
+# Role-level checks that catch reels that pass all technical gates but feel
+# repetitive, one-dimensional, or editorially assembled rather than authored.
+
+HOOK_END_S: float = 3.0  # beats starting before this second are hook beats
+
+# Map component name → primary visual role.
+# "annotation-focus" is assigned dynamically when AnnotationCircle appears alongside
+# a proof visual — it is not listed here as a standalone component role.
+COMPONENT_VISUAL_ROLE: dict[str, str] = {
+    # text-emphasis — words on screen are the primary visual event
+    "OverlayKeyword":    "text-emphasis",
+    "KeywordFadeIn":     "text-emphasis",
+    "CharKeyword":       "text-emphasis",
+    "GlitchText":        "text-emphasis",
+    # proof-display — product evidence as primary visual
+    "FramedImage":       "proof-display",
+    "BRollVideo":        "proof-display",
+    "FeatureMockup":     "proof-display",
+    "TypingText":        "proof-display",
+    # comparison — side-by-side or before/after structure
+    "ComparisonGrid":    "comparison",
+    "StrikethroughSwap": "comparison",
+    # list-structure — enumerated items
+    "CardStack":         "list-structure",
+    "NumberPopup":       "list-structure",
+    # reset-interrupt — editorial break
+    "FlashReset":        "reset-interrupt",
+    "ChapterDivider":    "reset-interrupt",
+    "LightLeakOverlay":  "reset-interrupt",
+    # credibility-signal — short-burst authority evidence
+    "BadgePopup":        "credibility-signal",
+    "ToastCard":         "credibility-signal",
+    "LogoOverlay":       "credibility-signal",
+}
+
+_RESET_COMPONENTS = frozenset({"FlashReset", "ChapterDivider", "LightLeakOverlay"})
+_PROOF_DISPLAY_COMPONENTS = frozenset({"FramedImage", "BRollVideo", "FeatureMockup", "TypingText"})
+_TEXT_EMPHASIS_COMPONENTS = frozenset({
+    "OverlayKeyword", "KeywordFadeIn", "CharKeyword", "GlitchText", "HeroTextCard"
+})
+
+# Mode classification for alternation check
+_PRESENTER_ROLES = frozenset({"avatar-anchor", "text-emphasis", "credibility-signal"})
+_PROOF_ROLES = frozenset({"proof-display", "annotation-focus", "comparison", "list-structure"})
+
+
+def _active_entries(lanes: dict, mid: float) -> list[tuple[str, dict]]:
+    """Return (lane_name, entry) pairs whose time range covers `mid`."""
+    result = []
+    for lane_name, entries in lanes.items():
+        for entry in (entries or []):
+            if entry.get("start", 0) <= mid < entry.get("end", 0):
+                result.append((lane_name, entry))
+    return result
+
+
+def _beat_visual_role(active: list[tuple[str, dict]]) -> str:
+    """Determine the primary visual role of a beat from its active lane entries.
+
+    Priority order: reset-interrupt > annotation-focus > comparison >
+    list-structure > proof-display > text-emphasis > credibility-signal >
+    avatar-anchor
+    """
+    components = {entry.get("component", "") for _, entry in active}
+    components.discard("")
+
+    if components & _RESET_COMPONENTS:
+        return "reset-interrupt"
+
+    # HeroTextCard with a section-label intent → reset-interrupt; else text-emphasis
+    for _, entry in active:
+        if entry.get("component") == "HeroTextCard":
+            if entry.get("sectionLabel") or entry.get("intent") in ("section-label", "chapter"):
+                return "reset-interrupt"
+
+    has_annotation = "AnnotationCircle" in components
+    has_proof = bool(components & _PROOF_DISPLAY_COMPONENTS)
+    if has_annotation and has_proof:
+        return "annotation-focus"
+
+    if components & {"ComparisonGrid", "StrikethroughSwap"}:
+        return "comparison"
+
+    if "CardStack" in components:
+        return "list-structure"
+
+    if has_proof:
+        return "proof-display"
+
+    if components & _TEXT_EMPHASIS_COMPONENTS:
+        return "text-emphasis"
+
+    if components & {"BadgePopup", "ToastCard", "LogoOverlay"}:
+        return "credibility-signal"
+
+    return "avatar-anchor"
+
+
+def _body_beats(beat_map: dict) -> list[dict]:
+    """Return beats that begin after the hook zone (>= HOOK_END_S)."""
+    return [b for b in beat_map.get("beats", []) if b.get("start", 0) >= HOOK_END_S]
+
+
+# ── Gate: visual role distribution ───────────────────────────────────────────
+
+def check_visual_role_distribution(timeline: dict, beat_map: dict) -> list[Finding]:
+    """BLOCKER if any visual role exceeds 50% of body beats."""
+    findings: list[Finding] = []
+    lanes = timeline.get("lanes", {})
+    body = _body_beats(beat_map)
+    if not body:
+        return findings
+
+    role_counts: dict[str, int] = {}
+    for beat in body:
+        mid = (beat["start"] + beat["end"]) / 2
+        role = _beat_visual_role(_active_entries(lanes, mid))
+        role_counts[role] = role_counts.get(role, 0) + 1
+
+    total = len(body)
+    for role, count in sorted(role_counts.items(), key=lambda x: -x[1]):
+        pct = count / total * 100
+        if pct > 50:
+            findings.append(Finding(
+                gate="visual-role-distribution",
+                severity=Severity.BLOCK,
+                location="body beats",
+                message=(
+                    f"Visual role '{role}' accounts for {count} of {total} body beats "
+                    f"({pct:.0f}%). Maximum 50%."
+                ),
+                fix_hint=(
+                    "Add compositional variety: insert proof-display, avatar-anchor, "
+                    "or reset-interrupt beats."
+                ),
+            ))
+    return findings
+
+
+# ── Gate: proof coverage ─────────────────────────────────────────────────────
+
+def check_proof_coverage(timeline: dict, beat_map: dict) -> list[Finding]:
+    """BLOCKER if proof-display + annotation-focus beats fall below duration minimum."""
+    findings: list[Finding] = []
+    lanes = timeline.get("lanes", {})
+    beats = beat_map.get("beats", [])
+    if not beats:
+        return findings
+
+    duration = max((b.get("end", 0) for b in beats), default=0.0)
+    if duration < 25:
+        return findings
+
+    if duration <= 35:
+        required = 3
+    elif duration <= 50:
+        required = 5
+    else:
+        required = 7
+
+    body = _body_beats(beat_map)
+    proof_count = sum(
+        1 for beat in body
+        if _beat_visual_role(
+            _active_entries(lanes, (beat["start"] + beat["end"]) / 2)
+        ) in ("proof-display", "annotation-focus")
+    )
+
+    if proof_count < required:
+        findings.append(Finding(
+            gate="proof-coverage",
+            severity=Severity.BLOCK,
+            location="body beats",
+            message=(
+                f"Only {proof_count} proof-display/annotation-focus beats in a "
+                f"{duration:.0f}s reel. Minimum {required}."
+            ),
+            fix_hint=(
+                "Add FramedImage, BRollVideo, AnnotationCircle, FeatureMockup, or "
+                "demo video beats to meet the proof minimum."
+            ),
+        ))
+    return findings
+
+
+# ── Gate: text-emphasis domination ───────────────────────────────────────────
+
+def check_text_emphasis_domination(timeline: dict, beat_map: dict) -> list[Finding]:
+    """BLOCKER if text-emphasis beats exceed 50% of body beats, or 3+ consecutive."""
+    findings: list[Finding] = []
+    lanes = timeline.get("lanes", {})
+    body = _body_beats(beat_map)
+    if not body:
+        return findings
+
+    roles = [
+        _beat_visual_role(_active_entries(lanes, (b["start"] + b["end"]) / 2))
+        for b in body
+    ]
+    total = len(roles)
+    te_count = roles.count("text-emphasis")
+
+    if total > 0 and te_count / total > 0.5:
+        findings.append(Finding(
+            gate="text-emphasis-domination",
+            severity=Severity.BLOCK,
+            location="body beats",
+            message=(
+                f"{te_count} of {total} body beats ({te_count / total * 100:.0f}%) use "
+                "text-emphasis role. Maximum 50%."
+            ),
+            fix_hint=(
+                "Replace some text-emphasis beats with proof-display or avatar-anchor beats."
+            ),
+        ))
+
+    # Detect streaks of 3+ consecutive text-emphasis beats — report each streak once
+    i = 0
+    while i < len(roles):
+        if roles[i] == "text-emphasis":
+            j = i
+            while j < len(roles) and roles[j] == "text-emphasis":
+                j += 1
+            streak_len = j - i
+            if streak_len >= 3:
+                bid_s = body[i]["id"]
+                bid_e = body[j - 1]["id"]
+                findings.append(Finding(
+                    gate="text-emphasis-domination",
+                    severity=Severity.BLOCK,
+                    location=f"beats {bid_s}–{bid_e}",
+                    message=(
+                        f"{streak_len} consecutive text-emphasis beats at {bid_s}–{bid_e}. "
+                        "Fake variety — same visual function across different component names."
+                    ),
+                    fix_hint=(
+                        "Insert a proof-display or avatar-anchor beat to break the streak."
+                    ),
+                ))
+            i = j
+        else:
+            i += 1
+
+    return findings
+
+
+# ── Gate: mode alternation ────────────────────────────────────────────────────
+
+def check_mode_alternation(timeline: dict, beat_map: dict) -> list[Finding]:
+    """WARNING if 4+ consecutive presenter-mode or proof-mode beats."""
+    findings: list[Finding] = []
+    lanes = timeline.get("lanes", {})
+    body = _body_beats(beat_map)
+    if not body:
+        return findings
+
+    modes: list[str] = []
+    for beat in body:
+        mid = (beat["start"] + beat["end"]) / 2
+        role = _beat_visual_role(_active_entries(lanes, mid))
+        if role in _PRESENTER_ROLES:
+            modes.append("presenter")
+        elif role in _PROOF_ROLES:
+            modes.append("proof")
+        else:
+            modes.append("reset")  # reset-interrupt — breaks any streak
+
+    i = 0
+    while i < len(modes):
+        mode = modes[i]
+        if mode == "reset":
+            i += 1
+            continue
+        j = i
+        while j < len(modes) and modes[j] == mode:
+            j += 1
+        streak_len = j - i
+        if streak_len >= 4:
+            bid_s = body[i]["id"]
+            bid_e = body[min(j - 1, len(body) - 1)]["id"]
+            if mode == "presenter":
+                detail = "Reel feels like a podcast — no visual evidence for this stretch."
+                hint = "Insert a proof-display beat to show evidence."
+            else:
+                detail = "Reel loses its human anchor — too long without a face return."
+                hint = "Insert an avatar-anchor beat to re-establish presenter presence."
+            findings.append(Finding(
+                gate="mode-alternation",
+                severity=Severity.WARN,
+                location=f"beats {bid_s}–{bid_e}",
+                message=f"Run of {streak_len} consecutive {mode}-mode beats. {detail}",
+                fix_hint=hint,
+            ))
+        i = j
+
+    return findings
+
+
+# ── Gate: reset cadence ───────────────────────────────────────────────────────
+
+def check_reset_cadence(timeline: dict, beat_map: dict) -> list[Finding]:
+    """WARNING for 35–45s reels with 0 reset beats; BLOCKER for 45s+."""
+    findings: list[Finding] = []
+    lanes = timeline.get("lanes", {})
+    beats = beat_map.get("beats", [])
+    if not beats:
+        return findings
+
+    duration = max((b.get("end", 0) for b in beats), default=0.0)
+    if duration < 35:
+        return findings
+
+    body = _body_beats(beat_map)
+    reset_count = sum(
+        1 for beat in body
+        if _beat_visual_role(
+            _active_entries(lanes, (beat["start"] + beat["end"]) / 2)
+        ) == "reset-interrupt"
+    )
+
+    if reset_count == 0:
+        severity = Severity.BLOCK if duration >= 45 else Severity.WARN
+        findings.append(Finding(
+            gate="reset-cadence",
+            severity=severity,
+            location="body beats",
+            message=(
+                f"No editorial reset in {duration:.0f}s reel. At least 1 pattern "
+                "interrupt required for reels 35s+."
+            ),
+            fix_hint=(
+                "Add a FlashReset, ChapterDivider, LightLeakOverlay, or "
+                "HeroTextCard section-label beat."
+            ),
+        ))
+    return findings

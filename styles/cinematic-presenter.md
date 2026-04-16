@@ -20,7 +20,7 @@ Smooth, premium, avatar-anchored. The presenter is the throughline. Demos and pr
 - **Typical duration:** 30-55 seconds
 - **Beat density:** 8-14 beats
 - **Word density:** moderate (140-160 wpm spoken)
-- **Hold time:** up to 3s on a demo with Ken Burns drift
+- **Hold time:** up to 3s; ambient drift only when the hold is >2.0s and has a named focal point
 
 ## Avatar Behavior
 
@@ -63,10 +63,15 @@ Smooth, premium, avatar-anchored. The presenter is the throughline. Demos and pr
 
 ## Motion Language
 
+Motion grammar rules: see `.claude/rules/motion-grammar.md` for the full doctrine, four motion modes, anti-patterns, and beat-level examples.
+
 - **1 hero + 1 support + 1 accent per beat** (strict)
-- **Ken Burns drift** on static content during holds
+- **Stillness is the default for body beats** — calm, confident framing. Not every beat needs drift.
+- **Ambient motion is opt-in**, not assumed. Apply only when hold >2.0s, there is a named focal point, and no other motion fires.
+- **Motivated zoom** requires pre-defined coordinates from Phase 4b-iii. Zoom reflex (zooming because the shot is static) is an anti-pattern.
+- **Do not stack** `zoom-in` entry preset + ambient drift hold on the same beat.
 - **Scale settle** on avatar re-entry
-- **Breathe oscillation** on avatar pauses
+- **Hook motion** may be stylized (bouncing logo, Ken Burns push toward hero element) — body beats do not inherit hook energy
 - **Flash accent:** max 1 per reel
 - **Gap ownership:** required for all speech pauses
 - **Background seams:** 8-12 frame opacity crossfade

@@ -7,6 +7,62 @@
   "required": ["meta", "prompt", "completion", "style_card"],
 
   "properties": {
+    "taste_annotation": {
+      "type": "object",
+      "description": "Qualitative taste layer — WHY this reel works, what patterns are reusable, what to avoid. Supports both human-written and machine-drafted entries. Optional on skeleton examples; required before an example can be used for taste derivation.",
+      "properties": {
+        "annotation_source": {
+          "type": "string",
+          "enum": ["human", "machine-draft", "mixed"],
+          "description": "Who produced this annotation"
+        },
+        "annotation_completeness": {
+          "type": "string",
+          "enum": ["complete", "partial", "minimal"],
+          "description": "complete = all fields present and specific; partial = why_it_works + some patterns; minimal = stub only"
+        },
+        "why_it_works": {
+          "type": "string",
+          "description": "One or two sentences explaining the mechanism — WHY this reel holds attention, not just WHAT it does. Should be a generalizable principle, not a description."
+        },
+        "hook_strength_reason": {
+          "type": "string",
+          "description": "What makes the first 2-3 seconds specifically effective. Reference the specific element (visual, caption, audio, motion) that creates the stop-scroll moment."
+        },
+        "body_variation_reason": {
+          "type": "string",
+          "description": "How the body achieves variety without chaos. Which dimension(s) vary (shot family, component type, proof method) and how the oscillation is managed."
+        },
+        "motion_quality_notes": {
+          "type": "string",
+          "description": "Was motion earned or reflexive? Which motion choices improved comprehension and which were decorative? Was stillness used deliberately?"
+        },
+        "proof_quality_notes": {
+          "type": "string",
+          "description": "Which proof moment was most convincing and why. How quickly did proof appear relative to claims. Was evidence visual or narrated?"
+        },
+        "caption_quality_notes": {
+          "type": "string",
+          "description": "What caption treatment was used and whether it reinforced or competed with visuals. Notable suppression decisions and their effect."
+        },
+        "repeatable_patterns": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Specific learnable patterns that could be applied to other reels. Write as 'When X, do Y' or 'For Z content, approach W works because...' — not 'this reel did X'."
+        },
+        "avoid_patterns": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "What would have been worse choices for this reel, and why. Helps identify what this reel's approach was specifically NOT doing."
+        },
+        "creative_takeaways": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Editorial principles extracted from this reel — broader than patterns, applicable beyond this specific format. The 'learn this principle' level, not 'copy this recipe'."
+        }
+      }
+    },
+
     "meta": {
       "type": "object",
       "description": "Source and preprocessing metadata",

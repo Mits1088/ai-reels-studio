@@ -1,16 +1,22 @@
 {
+  "_annotation_guide": "training/README-feedback-annotation.md",
   "schema": "training-schema.json",
+
   "examples": [
     {
       "id": "nicholas-puru-claude-plugins",
       "creator": "nicholas.puru",
       "file": "references/nicholas-processed/training-example.json",
       "status": "complete",
+      "annotation_status": "needs-annotation",
+      "reference_strength": "strong",
       "topic": "Claude plugin store launch",
       "style_card": "proof-escalation-editorial",
+      "style_notes": "Primary reference for proof-escalation-editorial. Strong news hook, clean proof arc, hard-cut rhythm, caption suppression during demo.",
       "duration_s": 58,
       "segments": 12,
       "templates_used": 8,
+      "taste_fields_complete": false,
       "date_processed": "2026-04-09"
     },
     {
@@ -18,11 +24,15 @@
       "creator": "lindsay.ai",
       "file": "references/lindsay-processed/training-example.json",
       "status": "preprocessed-only",
+      "annotation_status": "not-started",
+      "reference_strength": "unrated",
       "topic": "TODO",
       "style_card": "TODO",
+      "style_notes": "Scrolling icon grid hook, text ON avatar face, warm light leak transitions. Likely cinematic-editorial hybrid.",
       "duration_s": null,
       "segments": null,
       "templates_used": null,
+      "taste_fields_complete": false,
       "date_processed": null,
       "notes": "Existing frames at training/references/lindsay-frames/. Run preprocess-reel.py then annotate."
     },
@@ -31,11 +41,15 @@
       "creator": "thevarunmayya",
       "file": "references/thevarunmayya-processed/training-example.json",
       "status": "not-started",
+      "annotation_status": "not-started",
+      "reference_strength": "unrated",
       "topic": "TODO",
       "style_card": "TODO",
+      "style_notes": null,
       "duration_s": null,
       "segments": null,
       "templates_used": null,
+      "taste_fields_complete": false,
       "date_processed": null,
       "notes": "Existing frames at training/references/frames/. Run preprocess-reel.py then annotate."
     }
@@ -116,11 +130,26 @@
     }
   },
 
+  "annotation_status_values": {
+    "annotated": "taste_annotation block complete and specific — ready for taste derivation",
+    "needs-annotation": "structural data complete (status=complete) but taste_annotation not yet written",
+    "skeleton-only": "segment structure exists but many TODO fields remain — not ready for derivation",
+    "not-started": "preprocess-reel.py has not been run yet"
+  },
+
+  "reference_strength_values": {
+    "strong": "this reel is a clear positive example — patterns here are worth learning from",
+    "weak": "included for contrast or anti-pattern extraction only — do not use as positive reference",
+    "unrated": "not yet evaluated — do not use for taste derivation"
+  },
+
   "pipeline": {
     "step_1_preprocess": "python training/preprocess-reel.py --video <path> --creator <name>",
     "step_2_annotate": "Open skeleton.json, view frames/, classify each segment (template, visual, caption, proof_class, avatar)",
     "step_3_caption_ocr": "Manually transcribe captions from keyframes or use OCR if Tesseract is available",
-    "step_4_style_card": "If this reel represents a new style, define the style_card with template_registry and rules",
-    "step_5_validate": "Check all TODO fields are filled, all segments have templates, proof_escalation is ordered"
+    "step_4_taste_annotation": "Fill in the taste_annotation block — read training/README-feedback-annotation.md first. Set annotation_completeness and annotation_source.",
+    "step_5_style_card": "If this reel represents a new style, define the style_card with template_registry and rules",
+    "step_6_validate": "Check all TODO fields are filled, all segments have templates, proof_escalation is ordered, taste_annotation is complete",
+    "step_7_derive": "python training/derive_style_pack.py — produces template-registry, rhythm-bounds, caption-modes, taste-rules"
   }
 }

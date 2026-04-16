@@ -7,9 +7,27 @@ globs: ["**/learnings.md", "**/qa_report.json"]
 
 Adapted from ruflo's self-learning pattern. After a reel renders successfully, capture what worked so future reels start stronger.
 
-## When to Capture
+---
 
-After Phase 7 (render) completes successfully — and only then. Do not capture learnings from failed or abandoned reels (they teach different lessons that should be captured as feedback memories, not reel learnings).
+## Three Memory Systems — How They Differ
+
+The pipeline uses three distinct memory mechanisms. Each answers a different question at a different time.
+
+| System | File | When written | What it captures | Who uses it |
+|---|---|---|---|---|
+| **Global taste memory** | `memory/creative-feedback.json` | After 2+ signals from independent review rounds confirm a pattern | Aesthetic preferences: hard rules, soft preferences, component guidance, motion notes — generalizable across all future reels | Claude reads before every planning phase (script, shot-list, motion-intent, assembly) |
+| **Project review feedback** | `projects/<slug>/output/review-feedback.md` | After any review round (hook preview, QA review, final render) — managed by `feedback-capture` skill | Per-round taste signals for the current project: what worked, what felt plain, what to change | Claude reads before revision rounds and before continuing any phase within the same project |
+| **Post-render learning** | `projects/<slug>/output/learnings.md` | After Phase 7 render completes successfully — managed by this file | Structural outcomes: hook patterns that worked, proof methods, pacing numbers, encoding issues, revision count | Claude reads at start of similar new projects (same product type, same style, same audience) |
+
+**Global taste memory** is global and permanent once promoted. **Project review feedback** is project-scoped and can inform global memory via the `feedback-capture` promotion process. **Post-render learning** is project-scoped and structural — it never automatically becomes a global rule.
+
+If feedback from a review session is clearly one-off (product-specific, unique to this reel): write to project review feedback only. If the same feedback appears across 2+ projects: the `feedback-capture` skill will propose promoting it to global taste memory.
+
+---
+
+## When to Capture Post-Render Learnings
+
+After Phase 7 (render) completes successfully — and only then. Do not capture learnings from failed or abandoned reels (they teach different lessons that should be captured as feedback memories via `feedback-capture`, not as render learnings).
 
 ## What to Capture
 

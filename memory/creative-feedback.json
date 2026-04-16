@@ -1,0 +1,153 @@
+{
+  "_meta": {
+    "description": "Persistent human taste signal for the reel system. Updated after every approved reel or explicit feedback session. Read before applying style defaults, component mapping, or motion-intent choices.",
+    "last_updated": "2026-04-16",
+    "format_notes": "feedback_log entries are append-only (newest last). All other keys are maintained/overwritten as preferences evolve.",
+    "_field_descriptions": {
+      "hard_rules": "NEVER do this unless the user explicitly requests it. No creative override path applies. These are production, safety, or identity blockers — not aesthetic preferences. Breaking them is not a taste decision.",
+      "soft_preferences": "USUALLY prefer this. Can break it for a specific beat if the reason is documented in the shot list. These are aesthetic defaults, not absolute rules — the creative override path in body-grammar.md applies.",
+      "likes": "Patterns or components that have landed well across past reels — use with confidence when the beat fits.",
+      "dislikes": "Patterns that have weakened reels — avoid by default. Can use if specifically justified, but load the justification bar high.",
+      "components_to_use_more": "Underused components relative to their editorial value. Reach for these first when a beat type allows multiple options.",
+      "components_to_use_less": "Components becoming defaults through overuse. Rotate away from these even when they technically fit — their signal-to-noise drops with repetition."
+    }
+  },
+
+  "hard_rules": [
+    "Hook must have ≥4 simultaneous visual elements from frame 0. No clean fade-in openers.",
+    "Hook must contain real product UI — not stock footage, not abstract gradients.",
+    "Never use OverlayKeyword on 5+ consecutive beats. It stops registering as emphasis.",
+    "Never hold a single static screenshot for >2s without zoom or cut.",
+    "No zoom without a specific named target from the narration — zoom is precision, not energy.",
+    "Demo videos must be center-full, not split-screen (responsive crops landscape content).",
+    "Every layout change must have SFX. Silent hard cuts between sections are not allowed.",
+    "CTA must feel earned — reference what was proven, not a generic ask.",
+    "Avatar must never be the sole element in the first second of the hook."
+  ],
+
+  "soft_preferences": [
+    "Prefer calm, confident framing during strong spoken claims — authoritative stillness over reflex zoom.",
+    "Proof should appear in the first 3 beats where possible.",
+    "Component variety should feel designed, not randomized to hit a minimum count.",
+    "The reel should have a recognizable creative voice — specific choices, not template defaults.",
+    "Post-hook sections should vary shot family, component family, and proof type.",
+    "Prefer AnnotationCircle or BadgePopup over another KeywordFadeIn when the beat has a specific proof element.",
+    "SFX should be purposeful and subtle — soft slides/clicks over punchy pops unless the beat demands it.",
+    "Typography weight contrast should reflect the beat's emotional register — not default across all beats.",
+    "When in doubt, choose the component that best serves the narration, not the most visually complex one."
+  ],
+
+  "likes": [
+    "Bouncing brand logo in the hook (LogoOverlay with bounce:true) — signals premium immediately.",
+    "Real product UI screenshots that show exactly what the narrator claims at that moment.",
+    "AnnotationCircle on proof screenshots — draws the eye without adding clutter.",
+    "FlashReset as a section divider — decisive, editorial.",
+    "Multiple different screenshots in proof sections (rapid cuts between them).",
+    "NumberPopup + KeywordFadeIn pairing for numbered lists.",
+    "FeatureMockup for feature-specific proof beats — more visual specificity than a screenshot crop.",
+    "ToastCard for trust sub-points — feels live and native.",
+    "GlitchText on high-impact dramatic beats (pain payoffs, contrast reveals).",
+    "LottieOverlay for brand reveals when a Lottie animation is available.",
+    "Karaoke-style captions on beats with strong spoken rhythm.",
+    "Zoom targeted to a specific UI element the narrator names — precise and earned.",
+    "Proof visible before explanation — show then tell."
+  ],
+
+  "dislikes": [
+    "KeywordFadeIn as the default text component for every beat — becomes invisible.",
+    "OverlayKeyword on the avatar face on every direct-address beat — clutters the presenter.",
+    "Generic Pexels/Pixabay b-roll in proof positions — doesn't prove anything.",
+    "Ken Burns on every beat regardless of importance — zoom becomes noise.",
+    "Same entry preset for 7+ consecutive beats — invisible rhythm.",
+    "Hook that opens with avatar full-screen alone, no other visual elements.",
+    "Hook that uses a general claim ('AI is changing everything') instead of a specific payoff.",
+    "Background color that doesn't match the scene energy (dark behind a demo screenshot).",
+    "Any screenshot holding for 4+ seconds with no motion, zoom, or cut.",
+    "SFX that overpowers the narration or fires at every micro-moment indiscriminately.",
+    "Reels where the CTA is generic and doesn't connect to the specific proof just shown.",
+    "Clean minimalism in the hook — minimalism belongs in body beats.",
+    "Identical avatar layout for 10+ consecutive beats.",
+    "Caption text that fights with overlays or demo content simultaneously."
+  ],
+
+  "motion_notes": [
+    "Zoom is precision, not energy. Reserve it for moments with a specific named target.",
+    "Calm confident framing during a strong spoken claim is more premium than a zoom reflex.",
+    "Every beat: 1 hero motion, 1 support motion, 1 accent. No more.",
+    "No static hold longer than 0.5s without ambient motion (Ken Burns, breathe, or clip's own motion).",
+    "Max 2 consecutive entries with the same entry preset.",
+    "Gap ownership: every speech pause must be visually owned — exiting beat holds, entering beat pre-enters, or gap is a designed seam.",
+    "Background seam transitions: 8–12 frame crossfade, never hard-cut between background types.",
+    "Return beats after proof sections: stronger scale settle (1.05→1.00) marks the editorial reset.",
+    "Zoom correctly: fires when narrator names a specific element, targets exactly that element, holds long enough to read, scale 1.3–2.5x typical.",
+    "Max 2 zoom moments per beat with ≥1.5s between them."
+  ],
+
+  "hook_notes": [
+    "Stable structure: product UI visible frame 0, bouncing logo, split-screen avatar, value claim caption, SFX hit on entry.",
+    "≥4 simultaneous elements in motion throughout the first 3 seconds.",
+    "Value claim must be specific to this reel's proof — never generic.",
+    "Avatar in split-screen bottom — never full-screen alone in the hook.",
+    "At least one element in continuous motion (bounce, Ken Burns zoom, cycling screenshots) through the entire hook.",
+    "Brand logo SVG visible within the first 1–2 seconds.",
+    "Energetic but not chaotic — the hook signals premium, not desperation.",
+    "Proof-first or contrast-first — never setup-first.",
+    "First frame must stop the scroll. If the first frame could be a podcast thumbnail, redesign it."
+  ],
+
+  "caption_notes": [
+    "Strip ElevenLabs -- pause markers from caption text before assembly — they render as visible words.",
+    "Max 8 words per chunk, max 2.0s per chunk.",
+    "Preferred chunk duration: 0.6–1.2s.",
+    "Correct product/tool spelling: ChatGPT not 'chat GPT', Claude not 'claud'.",
+    "Captions stay in the bottom safe zone — never fight with overlays or demo content.",
+    "Emphasis word tagging: tag 1–2 words per chunk for visual weight.",
+    "Captions must be suppressed during demo-fullscreen and card-carousel entries (proof-escalation-editorial style).",
+    "Karaoke captions (word-by-word highlight) preferred for beats with strong spoken rhythm.",
+    "Caption text should not be legible at the same time as an OverlayKeyword covering the same semantic territory."
+  ],
+
+  "components_to_use_more": [
+    "AnnotationCircle — underlines and circles on proof screenshots; high signal, low visual noise",
+    "FeatureMockup — specific product feature visualization; more credible than a crop of a generic screenshot",
+    "ToastCard — for trust sub-points, 'this just happened' notifications; feels native and live",
+    "GlitchText (clippkit) — for high-impact dramatic moments; underused relative to its effectiveness",
+    "TypingText (clippkit) — for CLI command demos and prompt input visualization",
+    "LogoOverlay with trail+bounce — for brand reveals in the hook; signals premium immediately",
+    "CharKeyword — for single-word explosive reveals (WRONG, ZERO, FREE); more energy than KeywordFadeIn",
+    "StrikethroughSwap — for before/after and negation beats; specific and memorable",
+    "ComparisonGrid — for A vs B beats; underused, very effective for listicle-style reels"
+  ],
+
+  "components_to_use_less": [
+    "KeywordFadeIn — currently overused as the default text component; rotate to other treatments",
+    "OverlayKeyword on every avatar beat — use only for the 2–3 most important emphasis words per reel",
+    "Generic FramedImage without zoom or annotation on proof beats — add zoom target or annotation",
+    "AuroraBackground as the only background for entire reel — vary by scene energy",
+    "BadgePopup as filler — only use when the label adds genuine semantic value"
+  ],
+
+  "reference_reels": [
+    {
+      "project": "claude-managed-agents",
+      "slug": "claude-managed-agents",
+      "why_reference": "Editorial-authority style done well; karaoke captions; video-first proof; 51.6s with strong proof arc",
+      "rendered": "2026-04-13"
+    },
+    {
+      "project": "chatgpt-secret-codes",
+      "slug": "chatgpt-secret-codes",
+      "why_reference": "Listicle structure; code-only typing demo approach; numbered items with overlay pairing",
+      "rendered": "2026-03-24"
+    }
+  ],
+
+  "feedback_log": [
+    {
+      "date": "2026-04-16",
+      "source": "system_init",
+      "note": "Initial seed from accumulated memory system. All entries above reflect preferences established across multiple reel projects (chatgpt-secret-codes, google-little-language-lessons, claude-managed-agents, gemma4).",
+      "affects": ["hooks", "component_choice", "motion", "captions", "proof_strategy"]
+    }
+  ]
+}

@@ -141,6 +141,18 @@ Generic b-roll is not proof. Avatar-only is not proof. The visual must match the
 
 ---
 
+## Creative Intent Summary — Required
+
+Before beginning visual assignment, produce a 6-field Creative Intent Summary (template in `CLAUDE.md` → "Creative Intent Summary" section) and wait for user confirmation.
+
+**Trigger:** any new shot list, or any revision that changes component assignments, visual role distribution, proof method, or beat sequence structure.
+
+The summary must name: the specific visual problem being solved (e.g. text-emphasis streak, missing proof beat), which hook identity and body patterns are locked in, what specific component or visual assignments are changing and why, the main repetition or fitness risk, the relevant `creative-feedback.json` entries (taste-rules as tie-breaks only), and what the component mapping + role distribution should look like after the change.
+
+Do not proceed to visual assignment until the summary is confirmed.
+
+---
+
 ## Phase 4b-i — Visual Assignment
 
 This is the creative/editorial pass. For every beat, decide what the viewer sees.

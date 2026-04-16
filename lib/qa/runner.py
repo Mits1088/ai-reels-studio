@@ -23,7 +23,7 @@ from .checks import (
     check_placeholders,
     check_safe_zones_from_captions,
     check_duration,
-    # New style-aware checks
+    # Style-aware checks
     check_avatar_absence,
     check_center_full_streak,
     check_sfx_coverage,
@@ -32,6 +32,12 @@ from .checks import (
     check_flash_budget,
     check_style_compliance,
     check_overlay_positioning,
+    # Creative freshness checks
+    check_visual_role_distribution,
+    check_proof_coverage,
+    check_text_emphasis_domination,
+    check_mode_alternation,
+    check_reset_cadence,
 )
 
 
@@ -59,6 +65,12 @@ GATES = [
     ("flash-budget",         lambda bm, tl, ad, pj, st, vp: check_flash_budget(tl, st)),
     ("style-compliance",     lambda bm, tl, ad, pj, st, vp: check_style_compliance(tl, bm, pj, st)),
     ("overlay-positioning",  lambda bm, tl, ad, pj, st, vp: check_overlay_positioning(tl)),
+    # Creative freshness gates (role-level — run after all technical gates pass)
+    ("visual-role-distribution",   lambda bm, tl, ad, pj, st, vp: check_visual_role_distribution(tl, bm)),
+    ("proof-coverage",             lambda bm, tl, ad, pj, st, vp: check_proof_coverage(tl, bm)),
+    ("text-emphasis-domination",   lambda bm, tl, ad, pj, st, vp: check_text_emphasis_domination(tl, bm)),
+    ("mode-alternation",           lambda bm, tl, ad, pj, st, vp: check_mode_alternation(tl, bm)),
+    ("reset-cadence",              lambda bm, tl, ad, pj, st, vp: check_reset_cadence(tl, bm)),
 ]
 
 

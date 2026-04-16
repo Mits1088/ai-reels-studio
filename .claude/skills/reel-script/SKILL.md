@@ -128,6 +128,18 @@ If the script cannot be cut into a compelling reel, it is not finished.
 
 ---
 
+## Creative Intent Summary — Required
+
+Before writing a single word of script, produce a 6-field Creative Intent Summary (template in `CLAUDE.md` → "Creative Intent Summary" section) and wait for user confirmation.
+
+**Trigger:** any new script, or any revision that changes the hook approach, proof structure, CTA strategy, or primary beat classification.
+
+The summary must name: the specific creative problem this script solves, which hook archetype and proof patterns to preserve, what specific change is being made and why, the main risk of repetition or feedback violation, the relevant `creative-feedback.json` entries (and any taste-rules named as tie-breaks only), and the success criteria — what QA would flag if wrong and what the reviewer would say if right.
+
+Do not proceed to Step 1 until the summary is confirmed.
+
+---
+
 ## Script Production Workflow
 
 Follow these steps in order.

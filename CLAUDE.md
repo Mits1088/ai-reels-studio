@@ -18,24 +18,111 @@ Do not finalize visuals from estimated duration if actual narration audio exists
 
 ---
 
+## Creative Direction (read before style rules)
+
+Before applying any style-profile defaults, visual-style rules, motion-intent choices, or component mapping, read these five files in order:
+
+1. `docs/creative-direction.md` — authorship identity, hook philosophy, anti-patterns, what premium/boring/too-much-zoom means
+2. `memory/creative-feedback.json` — accumulated human taste signal: hard rules, soft preferences, component guidance
+3. `training/derived/taste-rules.json` — third-person patterns extracted from liked reference reels; hook archetypes, proof ordering, body patterns, anti-patterns. Check `_confidence` — LOW confidence is suggestive only; `creative-feedback.json` wins when they conflict unless confidence is HIGH.
+4. `.claude/rules/hook-grammar.md` — the fixed hook identity (what stays stable across all reels in the first 2–3 seconds)
+5. `.claude/rules/body-grammar.md` — post-hook variety rules (min variety, repetition limits, pattern interrupts, motion language)
+
+Files 1–3 define *what to make*. Files 4–5 define *how the structure enforces creative consistency vs. variety*. Technical rules below define *how to implement it*.
+
+When taste conflicts with a rule: **favor taste over style defaults** (component defaults, visual-style defaults, motion-intent presets, body-grammar limits) — document the override in the shot list. Do NOT override timing-sync, gate enforcement, QA safety, or asset-validity rules — those have production consequences that creative intent cannot compensate for. See `docs/creative-direction.md` → "On the Relationship Between Rules and Taste" for the full scope.
+
+**When reading `memory/creative-feedback.json` before a planning phase**, extract:
+- `hard_rules` — non-negotiable constraints that block component/motion choices without override
+- `soft_preferences` — defaults that can be overridden with a documented justification in the shot list
+- `components_to_use_more` / `components_to_use_less` — these have real weight in component scoring, not just advisory guidance
+- Recent `feedback_log` entries (last 3-5) — recent taste evolution may have shifted preferences since earlier entries were written
+- Also read `projects/<slug>/output/review-feedback.md` if it exists — project-specific signals from this project's earlier review rounds
+
+**When reading `training/derived/taste-rules.json` before scripting, shot-listing, or motion-intent**, check:
+- `hook_patterns` — before writing the hook or selecting a hook archetype
+- `proof_patterns` — before ordering proof segments in the shot list
+- `body_patterns` and `motion_patterns` — before motion-intent and component mapping
+- `anti_patterns` — before finalizing any section to confirm you're not repeating a documented failure mode
+- `_confidence` — if LOW, treat as inspiration only; if HIGH, treat as validated guidance on par with `soft_preferences`
+
+**Confidence constraints (read `_usage_constraints` in the file for the full rules):**
+- LOW confidence: these rules may influence candidate ranking and suggest hook angle alternatives — they must not override `creative-feedback.json` entries, establish a default hook or body template, or block a choice that `creative-feedback.json` permits
+- MEDIUM confidence: may also inform soft preference defaults when `creative-feedback.json` is silent on the topic
+- HIGH confidence: treated on par with `soft_preferences` in `creative-feedback.json` where not contradicted
+
+**Per-rule provenance**: every entry in `taste-rules.json` carries `evidence_type` (human_annotation / machine_inferred / mixed), `source_example`, and `reference_strength`. Prefer entries with `evidence_type: "human_annotation"` and `reference_strength: "strong"` over machine-inferred entries when making planning decisions. `machine_inferred` entries are structural guesses, not confirmed taste.
+
+When presenting a plan, briefly note 1-2 ways it applies prior feedback. Do not narrate the full memory read — the signal that feedback is being used should be visible in the choices.
+
+**After any major human review round**, suggest running `feedback-capture` to classify and store the reviewer's comments. Use the review template at `projects/_shared/review-feedback-template.md` to structure the session if the reviewer wants prompts.
+
+---
+
+## Creative Intent Summary
+
+**Required before:** reel-script, shot-list (Phase 4b-i), motion-intent, and assembly when the timeline structure materially changes (new beat layout, major component revision, new proof method).
+
+Before beginning any of these phases, produce a 6-field Creative Intent Summary and wait for user confirmation before proceeding. This forces synthesis before execution and creates a reviewable planning layer — the summary must demonstrate that Claude understands the specific creative problem before producing anything.
+
+### Template
+
+- **Creative problem:** What specific tension or gap does this work need to resolve?
+- **Stability to preserve:** What must not change — hook identity, validated body patterns, confirmed feedback choices
+- **Change to pursue:** The specific targeted change, and why it improves the reel
+- **Main risk:** Which past mistake, feedback entry, or known failure mode is most likely to recur here
+- **Key signals:** Confirmed feedback entries (hard_rules / soft_preferences) most relevant; taste-rules named as tie-breaks only (never blockers)
+- **Success criteria:** What QA would flag if this goes wrong; what the reviewer would say if it goes right
+
+### Anti-fluff rule
+
+Every field must name something specific: a component, a beat ID or range, a feedback entry, a visual role type. Any line that could describe any reel fails the test and must be rewritten before proceeding.
+
+| Bad (too vague — do not write this) | Good (specific — write this instead) |
+|---|---|
+| "Make it more engaging." | "Replace beats 04–06 text-emphasis streak with AnnotationCircle + center-full demo. Breaks 5-consecutive role run." |
+| "Apply creative feedback." | "`creative-feedback.json` hard_rule: OverlayKeyword max 3 uses. Currently at 4 — beat-06 overlay must become a proof visual." |
+| "Keep the hook strong." | "Preserve Split-Proof archetype A: LogoOverlay + FramedImage + AvatarVideo split. Product screenshot stays unchanged." |
+
+### Zone rule
+
+The summary must distinguish hook scope from body scope. Changes to the hook require explicit justification for altering the brand signature. Body zone changes do not require hook justification — but must name the beat range affected.
+
+### Example — body revision after QA flags text-emphasis streak
+
+**Creative problem:** 5 consecutive text-emphasis beats (04–08) — QA blocked on `text-emphasis-domination` gate. Fake variety: 5 different component names, 1 visual role.
+**Stability to preserve:** Split-Proof hook (archetype A) unchanged. Avatar layout sequence (split → full → split) approved at Phase 4b-i — do not alter. CTA structure validated.
+**Change to pursue:** Replace beat-06 OverlayKeyword with AnnotationCircle on benchmark screenshot. Replace beat-07 KeywordFadeIn with FramedImage center-full. Net: text-emphasis drops to 37% of body beats; `proof-display` and `annotation-focus` each gain one beat.
+**Main risk:** Repeating text-only proof. `creative-feedback.json` soft_preference: image-dominant proof beats preferred over text-only whenever evidence exists. Beat-06 already has a benchmark screenshot — another overlay is a regression.
+**Key signals:** [hard_rule] OverlayKeyword max 3 uses — beat-05 is use 3, beat-06 must change. [soft_preference] Annotation when narrator names a specific element. [taste-rule LOW] Benchmark charts read better with zoom — used as zoom coordinate direction only, not a design blocker.
+**Success criteria:** QA `text-emphasis-domination` gate passes (consecutive streak ≤ 2). Reviewer finds visible evidence per claim in the middle section. AnnotationCircle on benchmark gives viewer a specific element to track.
+
+---
+
 ## Rule Hierarchy
 
-1. `.claude/rules/reel-workflow.md`
-2. `.claude/rules/gate-enforcement.md`
-3. `.claude/rules/change-pipeline.md`
-4. `.claude/rules/timing-sync.md`
-5. `.claude/rules/qa-gates.md`
-6. `.claude/rules/visual-style.md`
-7. `.claude/rules/style-profiles.md`
-8. `.claude/rules/component-mapping.md`
-9. `.claude/rules/demo-capture-strategy.md`
-10. `.claude/rules/remotion-skill-required.md`
-11. `.claude/rules/reel-learning.md`
-12. `.claude/rules/template-grammar.md` (when style is `proof-escalation-editorial`)
-13. `.claude/skills/*/SKILL.md`
-14. `CLAUDE.md`
+1. `docs/creative-direction.md` ← **read first — authorship identity**
+2. `memory/creative-feedback.json` ← **read second — accumulated taste signal**
+3. `training/derived/taste-rules.json` ← **read third — patterns from liked reference reels (check `_confidence`)**
+4. `.claude/rules/hook-grammar.md` ← **hook structure — what stays stable**
+5. `.claude/rules/body-grammar.md` ← **body structure — variety rules and motion language**
+6. `.claude/rules/reel-workflow.md`
+7. `.claude/rules/gate-enforcement.md`
+8. `.claude/rules/change-pipeline.md`
+9. `.claude/rules/timing-sync.md`
+10. `.claude/rules/qa-gates.md`
+11. `.claude/rules/visual-style.md`
+12. `.claude/rules/style-profiles.md`
+13. `.claude/rules/component-mapping.md` (candidate sets) + `.claude/rules/component-selection-scoring.md` (scoring criteria)
+14. `.claude/rules/motion-grammar.md` — motion modes, anti-patterns, stillness doctrine (read before Phase 4c)
+15. `.claude/rules/demo-capture-strategy.md`
+16. `.claude/rules/remotion-skill-required.md`
+17. `.claude/rules/reel-learning.md` — post-render learning (see also: `feedback-capture` skill for in-production review feedback)
+18. `.claude/rules/template-grammar.md` (when style is `proof-escalation-editorial`)
+19. `.claude/skills/*/SKILL.md`
+20. `CLAUDE.md`
 
-`visual-style.md` provides rendering defaults. `assemble-reel` may override display choices by beat intent when retention or presenter anchoring is stronger.
+`visual-style.md` provides rendering defaults (display modes, backgrounds, zoom coords). `hook-grammar.md` governs the first 2–3s. `body-grammar.md` governs everything after. `assemble-reel` may override display choices by beat intent when retention or presenter anchoring is stronger.
 
 ---
 
@@ -78,9 +165,17 @@ Full skill documentation: `.claude/skills/youtube/SKILL.md`
 
 ## Workflow (compact)
 
-Phases: 0 source-brief → 0b theme-factory → 1 reel-script → 2 ingest-voice → 2b script-reconcile → 3 beat-map → 3b caption-polish → 4 capture-demo → 4b shot-list (i/ii/iii) → 4c motion-intent → 4d asset-prep → 5 assemble-reel → 6 qa-reel → 7 render
+Phases: 0 source-brief → 0b theme-factory → 1 reel-script → 2 ingest-voice → 2b script-reconcile → 3 beat-map → 3b caption-polish → 4 capture-demo → 4b shot-list (i/ii/iii) → 4c motion-intent → 4d asset-prep → 5 assemble-reel → **5b quick preview [→ feedback-capture]** → 6 qa-reel **[→ feedback-capture]** → 7 render **[→ feedback-capture + reel-learning]**
 
 11 approval gates. See `.claude/rules/gate-enforcement.md` for the full gate-to-skill mapping.
+
+**Feedback capture triggers** — suggest running `feedback-capture` after:
+- Phase 5b (quick preview): user's first impressions of the assembled cut
+- Phase 6 (QA review): any editorial observations beyond technical blockers
+- Phase 7 (render): final impressions before publishing
+- Any revision round: user watches the revised cut and comments on whether it improved
+
+See `.claude/skills/feedback-capture/SKILL.md` for the full classification and memory update process. Use `projects/_shared/review-feedback-template.md` to prompt structured feedback from the reviewer.
 
 Pipeline tools:
 - Preflight:  `python -m lib.phase check <skill> projects/<slug>`
