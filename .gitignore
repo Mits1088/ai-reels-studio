@@ -26,6 +26,16 @@ Avatar/
 NotebookLM-Video/
 broll-tests/
 screenshots/
+claude-managed-agents/
+
+# ─────────────────────────────────────────────────────────────────────
+# Reference media (template study videos and crop frames)
+# Source content — not code
+# ─────────────────────────────────────────────────────────────────────
+templates/*.mp4
+templates/measure-crops/
+templates/ref-frames/
+templates/ref-study/
 
 # ─────────────────────────────────────────────────────────────────────
 # Binary asset libraries (excluded for code-only repo)
@@ -58,6 +68,11 @@ remotion/out/
 remotion/public/
 remotion/qa-check/
 remotion/test-*.png
+remotion/preview-frames/
+remotion/final-*.png
+remotion/hl-*.png
+remotion/v[0-9]-*.png
+remotion/v[0-9][0-9]-*.png
 out/
 
 # ─────────────────────────────────────────────────────────────────────
