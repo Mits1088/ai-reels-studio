@@ -90,6 +90,8 @@ class Runner:
                 break
 
             # Execute the phase
+            prior_state = snap.orchestration_state
+
             result = route_executor(phase_key, snap)
             results.append(result)
             phases_run += 1
@@ -97,6 +99,11 @@ class Runner:
             if result.succeeded:
                 phases_succeeded += 1
                 snap = load_snapshot(project_dir)  # reload to pick up gate changes
+                # If state didn't advance and no gate was set, we've reached a
+                # stable terminal point (e.g. render succeeded but no artifact
+                # exists yet to transition state). Stop to avoid infinite loop.
+                if snap.orchestration_state == prior_state and not result.gate_set:
+                    break
                 continue
 
             if result.paused:
