@@ -149,13 +149,13 @@ Read `project.json` for the `style` field before starting assembly. The style ch
 | Section divider | scene background crossfade | `FlashReset` (2-3 frame white flash) |
 | Avatar on-screen | 60-70% | 30-45% |
 | Avatar layout | split-screen + full-screen | full-screen only (no split-screen) |
-| Max consecutive center-full | 2 | 8 (full-frame is the default) |
-| Avatar absence limit | 8s (12s with b-roll) | 18s |
+| Max consecutive center-full | 4 preferred | 4 preferred (5 conditional — only if 3+ different sub-classes) |
+| Avatar absence limit | 12s preferred — 15s hard max (one block only; matched b-roll can relax this further) | 8s preferred — 12s hard max (one >8s block max, proof-protected only) |
 | Demo display | center-full for video, split-screen for screenshot | full-screen (everything fills the frame) |
 | Background style | Aurora/Beams for demos, GradientMesh for CTA | Solid colors, white for proof, dark for CTA |
 | SFX minimum | 6-8 entries | 8-12 entries |
 | SFX on hard cuts | required | not required (cut IS the punctuation) |
-| Ken Burns | yes on static content | no — static holds are fine |
+| Ambient motion (body beats) | body beats default to `still` — ambient opt-in only (hold >2.0s, named focal point, no competing motion); motivated zoom requires pre-defined coordinates from Phase 4b-iii | no ambient motion — static holds are correct; motivated zoom only for specific narration targets with pre-defined coordinates |
 | Motion budget | 1 hero + 1 support + 1 accent | 1 hero + 0-1 support + 0-1 accent |
 | Overlay types | NumberPopup, KeywordFadeIn, BadgePopup | HeroTextCard, OverlayKeyword, FlashReset, CursorClick |
 | Gap ownership | required for all pauses | no gaps — every frame filled |
