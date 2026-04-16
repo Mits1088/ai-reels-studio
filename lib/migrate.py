@@ -18,7 +18,7 @@ from pathlib import Path
 
 from lib.constants import (
     VALID_PHASES, VALID_STATUSES, GATE_ORDER, YOUTUBE_GATE_ORDER,
-    CURRENT_SCHEMA_VERSION,
+    CURRENT_SCHEMA_VERSION, CURRENT_CATALOG_SCHEMA_VERSION,
 )
 
 
@@ -315,21 +315,99 @@ def migrate_all(projects_root: Path, dry_run: bool = True) -> list[str]:
     return all_output
 
 
+# ── Catalog migration (Phase B) ─────────────────────────────────────────────
+
+
+def migrate_catalog(project_dir: Path, dry_run: bool = True) -> list[str]:
+    """Migrate a project's assets/catalog.json from v1 to v2.
+
+    Changes (idempotent, non-destructive):
+      - Stamps schema_version: 2 if absent
+      - Moves URL sources into source_url, sets source: 'url-import'
+
+    Does NOT add enrichment data — that is a separate step (lib.capture.enrich).
+    """
+    cat_path = project_dir / "assets" / "catalog.json"
+    if not cat_path.exists():
+        return [f"SKIP: {project_dir.name}/catalog.json — file does not exist"]
+
+    try:
+        with open(cat_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except json.JSONDecodeError as e:
+        return [f"ERROR: {project_dir.name}/catalog.json — invalid JSON: {e}"]
+
+    slug = project_dir.name
+    changes: list[str] = []
+
+    # Schema version stamp
+    current = data.get("schema_version")
+    if current is None:
+        data["schema_version"] = CURRENT_CATALOG_SCHEMA_VERSION
+        changes.append(
+            f"schema_version: added (was absent — v1) → {CURRENT_CATALOG_SCHEMA_VERSION}"
+        )
+    elif current != CURRENT_CATALOG_SCHEMA_VERSION:
+        return [
+            f"ERROR: {slug}/catalog.json — unsupported schema_version: {current!r} "
+            f"(expected {CURRENT_CATALOG_SCHEMA_VERSION})"
+        ]
+
+    # URL → source_url normalization
+    for i, asset in enumerate(data.get("assets", [])):
+        source = asset.get("source", "")
+        if isinstance(source, str) and (
+            source.startswith("http://") or source.startswith("https://")
+        ):
+            asset["source_url"] = source
+            asset["source"] = "url-import"
+            changes.append(
+                f"assets[{i}] ({asset.get('id', '?')}): "
+                f"moved URL → source_url, set source='url-import'"
+            )
+
+    if not changes:
+        return [f"OK: {slug}/catalog.json — already v{CURRENT_CATALOG_SCHEMA_VERSION}, no changes"]
+
+    if not dry_run:
+        with open(cat_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+            f.write("\n")
+
+    prefix = "WOULD" if dry_run else "APPLIED"
+    return [f"{prefix}: {slug}/catalog.json — {len(changes)} change(s)"] + [
+        f"  - {c}" for c in changes
+    ]
+
+
+def migrate_all_catalogs(projects_root: Path, dry_run: bool = True) -> list[str]:
+    """Migrate catalog.json across all projects."""
+    out: list[str] = []
+    for d in sorted(projects_root.iterdir()):
+        if d.is_dir() and (d / "assets" / "catalog.json").exists():
+            out.extend(migrate_catalog(d, dry_run=dry_run))
+            out.append("")
+    return out
+
+
 # ── CLI ─────────────────────────────────────────────────────────────────────
 
 USAGE = """\
 Usage:
-  python -m lib.migrate [--dry-run] [--project <slug>]
+  python -m lib.migrate [--target {project|catalog|all}] [--dry-run] [--project <slug>]
 
 Options:
-  --dry-run       Preview changes without writing (default)
+  --target KIND   What to migrate: project (default), catalog, or all
+  --dry-run       Preview changes without writing
   --project SLUG  Migrate a single project (default: all projects)
 
 Examples:
-  python -m lib.migrate --dry-run                    # preview all
-  python -m lib.migrate                              # apply all
-  python -m lib.migrate --project my-reel            # single project
-  python -m lib.migrate --project my-reel --dry-run  # preview single
+  python -m lib.migrate --dry-run                              # preview project.json migration
+  python -m lib.migrate                                        # apply project.json migration
+  python -m lib.migrate --target catalog --dry-run             # preview catalog migration
+  python -m lib.migrate --target catalog                       # apply catalog migration
+  python -m lib.migrate --target catalog --project my-reel     # single catalog
+  python -m lib.migrate --target all                           # both project + catalog
 """
 
 
@@ -337,6 +415,20 @@ def main() -> None:
     args = sys.argv[1:]
     dry_run = "--dry-run" in args
     args = [a for a in args if a != "--dry-run"]
+
+    # --target {project|catalog|all}, default 'project' for backwards compat
+    target = "project"
+    if "--target" in args:
+        idx = args.index("--target")
+        if idx + 1 < len(args):
+            target = args[idx + 1]
+            args = args[:idx] + args[idx + 2:]
+        else:
+            print("ERROR: --target requires a value (project|catalog|all)")
+            sys.exit(1)
+        if target not in ("project", "catalog", "all"):
+            print(f"ERROR: invalid --target value: {target!r}. Expected: project, catalog, or all")
+            sys.exit(1)
 
     project_slug = None
     if "--project" in args:
@@ -352,19 +444,34 @@ def main() -> None:
         print("ERROR: projects/ directory not found. Run from repo root.")
         sys.exit(1)
 
-    if project_slug:
-        project_dir = projects_root / project_slug
-        if not project_dir.exists():
-            print(f"ERROR: Project not found: {project_dir}")
-            sys.exit(1)
-        output = migrate_project(project_dir, dry_run=dry_run)
-    else:
-        # Default to dry_run if no explicit flag and no --project
-        if not args and "--dry-run" not in sys.argv:
-            dry_run = False
-        output = migrate_all(projects_root, dry_run=dry_run)
+    output_lines: list[str] = []
 
-    for line in output:
+    def _run_target(target_kind: str) -> None:
+        if project_slug:
+            project_dir = projects_root / project_slug
+            if not project_dir.exists():
+                print(f"ERROR: Project not found: {project_dir}")
+                sys.exit(1)
+            if target_kind == "project":
+                output_lines.extend(migrate_project(project_dir, dry_run=dry_run))
+            elif target_kind == "catalog":
+                output_lines.extend(migrate_catalog(project_dir, dry_run=dry_run))
+        else:
+            if target_kind == "project":
+                output_lines.extend(migrate_all(projects_root, dry_run=dry_run))
+            elif target_kind == "catalog":
+                output_lines.extend(migrate_all_catalogs(projects_root, dry_run=dry_run))
+
+    if target == "all":
+        output_lines.append("=== TARGET: project.json ===")
+        _run_target("project")
+        output_lines.append("")
+        output_lines.append("=== TARGET: catalog.json ===")
+        _run_target("catalog")
+    else:
+        _run_target(target)
+
+    for line in output_lines:
         print(line)
 
     if dry_run:

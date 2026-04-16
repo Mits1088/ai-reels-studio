@@ -1,14 +1,30 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "timeline.json",
-  "description": "Multi-lane timeline for reel assembly. Every entry must trace to a beat ID.",
+  "description": "Multi-lane timeline for reel assembly. Every entry must trace to a beat ID. Phase C added an overlays lane plus optional editorial planning fields and render-hint fields on visual_lane items so the schema stays in sync with remotion/src/types.ts and the GenericReelComposition runtime.",
   "type": "object",
   "required": ["total_duration", "lanes"],
-  "additionalProperties": false,
+  "additionalProperties": true,
   "properties": {
     "total_duration": {
       "type": "number",
       "minimum": 0.1
+    },
+    "audio": {
+      "type": "string",
+      "description": "Audio filename relative to remotion/public/. Defaults to 'source.wav'."
+    },
+    "avatar_file": {
+      "type": "string",
+      "description": "Avatar video filename relative to remotion/public/. Defaults to 'avatar.mp4'."
+    },
+    "project": {
+      "type": "string",
+      "description": "Optional project label written by some legacy reels."
+    },
+    "style": {
+      "type": "string",
+      "description": "Optional style profile label, mirrors project.json.style."
     },
     "lanes": {
       "type": "object",
@@ -21,7 +37,8 @@
         "support": { "$ref": "#/$defs/visual_lane" },
         "captions": { "$ref": "#/$defs/caption_lane" },
         "sfx":     { "$ref": "#/$defs/audio_lane" },
-        "music":   { "$ref": "#/$defs/audio_lane" }
+        "music":   { "$ref": "#/$defs/audio_lane" },
+        "overlays": { "$ref": "#/$defs/overlay_lane" }
       }
     }
   },
@@ -66,8 +83,9 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["beat_id", "start", "end", "asset"],
-        "additionalProperties": false,
+        "required": ["start", "end"],
+        "additionalProperties": true,
+        "description": "Visual lane entry. Phase C relaxed `asset` and `beat_id` from required to optional to accommodate legacy reels that omit them on avatar entries (the renderer uses defaults). additionalProperties is true so render-hint fields (display, playbackRate, clipStartTime, zoom_moments, loop, volume, kenBurns) and the editorial planning fields below pass through cleanly.",
         "properties": {
           "beat_id":    { "type": "string" },
           "start":      { "type": "number", "minimum": 0 },
@@ -92,7 +110,64 @@
               "w": { "type": "number" },
               "h": { "type": "number" }
             }
-          }
+          },
+          "display": {
+            "type": "string",
+            "enum": ["responsive", "center-full", "hook-reveal", "bg"],
+            "description": "Display mode override; see remotion/RENDER_CONTRACT.md."
+          },
+          "playbackRate": { "type": "number", "minimum": 0.25, "maximum": 4.0 },
+          "clipStartTime": { "type": "number", "minimum": 0 },
+          "zoom_moments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["at", "x", "y", "scale"],
+              "properties": {
+                "at":      { "type": "number", "minimum": 0 },
+                "x":       { "type": "number", "minimum": 0, "maximum": 100 },
+                "y":       { "type": "number", "minimum": 0, "maximum": 100 },
+                "scale":   { "type": "number", "minimum": 1.0, "maximum": 3.0 },
+                "holdFor": { "type": "number", "minimum": 0 }
+              }
+            }
+          },
+          "loop":   { "type": "boolean" },
+          "volume": { "type": "number", "minimum": 0, "maximum": 1 },
+          "punchFrame": { "type": "integer", "minimum": 0 },
+
+          "template_id":    { "type": "string", "description": "Phase C: editorial layout template id from training/derived/template-registry.json" },
+          "proof_class": {
+            "type": "string",
+            "enum": ["existence", "breadth", "process", "output", "integration", "authority", "cta"],
+            "description": "Phase C: one of the 7 proof classes from lib/grammar/proof_classes.py"
+          },
+          "avatar_mode":    { "type": "string", "description": "Phase C: free-form avatar descriptor" },
+          "splitRatio":     { "type": "string", "description": "Phase C: e.g. '40/60', '65/35'" },
+          "captionMode": {
+            "type": "string",
+            "enum": ["standard", "headline", "suppressed", "section-label", "badge-overlay"],
+            "description": "Phase C: caption rendering mode from lib/grammar/templates.VALID_CAPTION_MODES"
+          },
+          "proof_protected": { "type": "boolean", "description": "Phase C: when true, the proof asset must not be substituted with b-roll" }
+        }
+      }
+    },
+    "overlay_lane": {
+      "type": "array",
+      "description": "Optional overlay entries (KeywordFadeIn, BadgePopup, NumberPopup, etc.). Mirrors OverlayEntry in remotion/src/types.ts.",
+      "items": {
+        "type": "object",
+        "required": ["type", "start", "end"],
+        "additionalProperties": true,
+        "properties": {
+          "type":    { "type": "string", "description": "Overlay component name (e.g. 'OverlayKeyword', 'BadgePopup')" },
+          "start":   { "type": "number", "minimum": 0 },
+          "end":     { "type": "number", "minimum": 0 },
+          "beat_id": { "type": "string" },
+          "asset":   { "type": "string" },
+          "props":   { "type": "object", "description": "Component-specific props (text, color, fontSize, position, etc.)" },
+          "notes":   { "type": "string" }
         }
       }
     },

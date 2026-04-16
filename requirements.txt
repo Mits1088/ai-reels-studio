@@ -14,6 +14,14 @@ openai-whisper>=20231117    # Local Whisper model (alternative to API)
 google-genai>=0.4.0         # Gemini Vision API for scene classification
 scenedetect>=0.6.0          # PySceneDetect for video scene splitting
 
+# Optional enrichment dependencies (lib.capture.enrich)
+# Pipeline degrades gracefully if these are missing — face detection
+# falls back to "no faces detected", text density falls back to an
+# edge-density heuristic, and the rest of enrichment still runs.
+# opencv-python>=4.8.0       # face detection (lib.capture.enrich._measure_faces)
+# pytesseract>=0.3.10        # text density via OCR — also requires the Tesseract binary
+
 # System tools (must be installed separately, not pip)
 # - ffmpeg + ffprobe: https://ffmpeg.org/download.html
 # - Node.js + npm: for Playwright and Remotion
+# - tesseract (optional): https://github.com/tesseract-ocr/tesseract — only needed if pytesseract is installed

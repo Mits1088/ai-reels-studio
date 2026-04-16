@@ -1,71 +1,174 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "catalog.json",
-  "description": "Asset catalog for a reel project. Every asset must have a purpose linked to beats or scenes.",
+  "title": "catalog.json (v2)",
+  "description": "Asset catalog for a reel project. Every asset has a purpose linked to beats and may carry an enrichment block with technical and editorial metadata. v1 catalogs (no schema_version field) must be migrated by lib.migrate before validation.",
   "type": "object",
-  "required": ["assets"],
+  "required": ["schema_version", "assets"],
   "additionalProperties": false,
   "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 2,
+      "description": "Catalog schema version. v1 catalogs (no schema_version field) must be migrated."
+    },
     "assets": {
       "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["id", "filename", "type", "role", "linked_beats", "description"],
-        "additionalProperties": false,
-        "properties": {
-          "id": {
+      "items": { "$ref": "#/$defs/asset" }
+    }
+  },
+  "$defs": {
+    "asset": {
+      "type": "object",
+      "required": ["id", "filename", "type", "role", "linked_beats", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "description": "Unique asset ID, used in timeline references"
+        },
+        "filename": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Filename relative to assets/ directory"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["video", "image", "logo", "chart", "icon", "overlay", "sfx", "music"],
+          "description": "Asset content type"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["avatar", "demo", "support", "broll", "background", "sfx", "music"],
+          "description": "Which timeline lane or purpose this asset serves. 'broll' added in v2 to match the timeline broll lane."
+        },
+        "linked_beats": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "Beat IDs this asset is used for. At least one required."
+        },
+        "scene": {
+          "type": ["integer", "null"],
+          "description": "Scene number if asset spans an entire scene"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What this asset shows and why it exists"
+        },
+        "duration_s": {
+          "type": ["number", "null"],
+          "description": "Duration in seconds for video/audio assets"
+        },
+        "dimensions": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "w": { "type": "integer" },
+            "h": { "type": "integer" }
+          },
+          "description": "Width x height for image/video assets"
+        },
+        "source": {
+          "type": "string",
+          "enum": ["capture", "import", "generate", "brand-kit", "url-import"],
+          "description": "How this asset was obtained. 'url-import' added in v2 — pairs with source_url."
+        },
+        "source_url": {
+          "type": "string",
+          "description": "When source='url-import', the original URL the asset was downloaded from"
+        },
+        "enrichment": {
+          "$ref": "#/$defs/enrichment",
+          "description": "Optional enrichment block written by lib.capture.enrich. Omitted entirely on assets that have not been enriched yet."
+        }
+      }
+    },
+    "enrichment": {
+      "type": "object",
+      "required": ["status", "schema_version", "derived_at", "derived_by"],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["not_enriched", "partial", "full", "failed"],
+          "description": "Overall enrichment outcome for this asset"
+        },
+        "schema_version": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Enrichment block schema version"
+        },
+        "derived_at": {
+          "type": "string",
+          "description": "ISO-8601 timestamp of the most recent enrichment run"
+        },
+        "derived_by": {
+          "type": "string",
+          "description": "Enricher identifier (e.g. 'lib.capture.enrich@1.0.0')"
+        },
+        "failure_reason": {
+          "type": ["string", "null"],
+          "description": "Set when status='failed'. Free-form error message."
+        },
+        "aspect_ratio": {
+          "type": ["string", "null"],
+          "description": "Normalized aspect ratio string (e.g. '16:9', '9:16', '1:1')"
+        },
+        "aspect_ratio_decimal": {
+          "type": ["number", "null"]
+        },
+        "technical":  { "$ref": "#/$defs/measurement" },
+        "appearance": { "$ref": "#/$defs/measurement" },
+        "motion":     { "$ref": "#/$defs/measurement" },
+        "text":       { "$ref": "#/$defs/measurement" },
+        "faces":      { "$ref": "#/$defs/measurement" },
+        "focal_point": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/focal_point" }
+          ]
+        },
+        "quality_flags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "editorial_tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "usable_display_modes": {
+          "type": "array",
+          "items": {
             "type": "string",
-            "pattern": "^[a-z0-9][a-z0-9._-]*$",
-            "description": "Unique asset ID, used in timeline references"
-          },
-          "filename": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Filename relative to assets/ directory"
-          },
-          "type": {
-            "type": "string",
-            "enum": ["video", "image", "logo", "chart", "icon", "overlay", "sfx", "music"],
-            "description": "Asset content type"
-          },
-          "role": {
-            "type": "string",
-            "enum": ["avatar", "demo", "support", "background", "sfx", "music"],
-            "description": "Which timeline lane or purpose this asset serves"
-          },
-          "linked_beats": {
-            "type": "array",
-            "items": { "type": "string" },
-            "minItems": 1,
-            "description": "Beat IDs this asset is used for. At least one required."
-          },
-          "scene": {
-            "type": ["integer", "null"],
-            "description": "Scene number if asset spans an entire scene"
-          },
-          "description": {
-            "type": "string",
-            "minLength": 1,
-            "description": "What this asset shows and why it exists"
-          },
-          "duration_s": {
-            "type": ["number", "null"],
-            "description": "Duration in seconds for video/audio assets"
-          },
-          "dimensions": {
-            "type": ["object", "null"],
-            "properties": {
-              "w": { "type": "integer" },
-              "h": { "type": "integer" }
-            },
-            "description": "Width x height for image/video assets"
-          },
-          "source": {
-            "type": "string",
-            "enum": ["capture", "import", "generate", "brand-kit"],
-            "description": "How this asset was obtained"
+            "enum": ["split-screen", "center-full", "responsive", "hook-reveal"]
           }
         }
+      }
+    },
+    "measurement": {
+      "type": "object",
+      "description": "A single enrichment measurement. Carries provenance (method, derived_at) and either a successful value (per-measurement keys) or a skipped_reason. additionalProperties=true because each measurement type populates its own keys (fps/codec for technical, score for motion, boxes for faces, etc.). Per-measurement keys are documented in lib/capture/enrich.py.",
+      "type": "object",
+      "required": ["method", "skipped_reason"],
+      "additionalProperties": true,
+      "properties": {
+        "method":         { "type": "string" },
+        "skipped_reason": { "type": ["string", "null"] },
+        "confidence":     { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "derived_at":     { "type": "string" }
+      }
+    },
+    "focal_point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "source"],
+      "properties": {
+        "x":          { "type": "number", "minimum": 0, "maximum": 100 },
+        "y":          { "type": "number", "minimum": 0, "maximum": 100 },
+        "source":     { "type": "string", "enum": ["face", "text-block", "center", "manual"] },
+        "confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
       }
     }
   }

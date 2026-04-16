@@ -11,6 +11,9 @@ import re
 
 CURRENT_SCHEMA_VERSION = 2
 
+# Catalog schema version (separate from project schema version, may diverge).
+CURRENT_CATALOG_SCHEMA_VERSION = 2
+
 # ── Project types ──────────────────────────────────────────────────────────
 
 VALID_PROJECT_TYPES = {"reel", "youtube"}
@@ -34,7 +37,7 @@ VALID_STATUSES = {
     "blocked", "completed", "failed",
 }
 
-VALID_STYLES = {"cinematic-presenter", "editorial-authority"}
+VALID_STYLES = {"cinematic-presenter", "editorial-authority", "proof-escalation-editorial"}
 
 # ── Gate IDs (from .claude/rules/gate-enforcement.md) ───────────────────────
 
