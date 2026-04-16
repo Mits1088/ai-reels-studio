@@ -204,6 +204,41 @@ In short:
 - preserve social-first presenter anchoring
 - prepare composition data for rendering
 - document any deviation from `shot-list.md`
+- **render preview frames after every major beat is added to the timeline (not at the end)**
+
+### Mandatory: beat-by-beat preview render during assembly
+
+Do not write the entire `timeline.json` and then render preview frames at the end. **Render after every major beat is added.** Static reading of component source isn't sufficient — visual issues (z-index, color, layout, animation timing, gap rendering) only become visible in actual frames.
+
+The preview render is now scripted:
+
+```bash
+python -m lib.preview_beats projects/<slug>
+```
+
+This reads `output/timeline.json`, finds the midpoint of every editorial beat, and renders all of them as PNG stills via `npx remotion still`. Outputs go to `projects/<slug>/output/preview/`.
+
+**Required workflow:**
+
+1. Add 1-3 beats to `timeline.json`
+2. Run `python -m lib.preview_beats projects/<slug>` to render the new beats
+3. Read each rendered PNG via the Read tool and visually verify:
+   - Component is visible (z-index correct)
+   - Color renders as expected (especially SVGs — see `feedback_svg_color_through_img.md`)
+   - Layout matches the shot list (split-screen ratio, avatar position)
+   - Overlays don't cover the avatar's face during avatar beats
+   - Background color is correct (warm beige / dark / content-driven)
+   - Caption is readable
+4. Fix any issues before adding the next beat
+5. Repeat
+
+**Why this matters:** in the past, all visual issues were discovered at the Phase 5b preview gate at the end of assembly, leading to multiple iteration cycles. Catching issues at the beat where they occur reduces total iterations and prevents compounding bugs. See `feedback_render_frames_early.md` in user memory.
+
+### Vendored libraries to check before building anything new
+
+- `remotion/src/components/effects/clippkit/` — vendored from clippkit (MIT). BarWaveform, CircularWaveform, GlitchText, TypingText, ToastCard. See `clippkit/NOTICE.md`.
+- `lib/feature_mockups/presets.json` — pre-built `FeatureMockup` configs (12 presets across security, observability, infrastructure, platform, performance categories). Pull via `from lib.feature_mockups import preset`.
+- `lib/edit_plan/` — edit-plan compiler (`validate`, `compile`, `summary`, `parity`). Compiles `output/edit-plan.json` into `output/timeline.json` deterministically. Use it instead of hand-writing timeline JSON when the project has a structured edit plan.
 
 ---
 

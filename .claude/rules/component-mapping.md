@@ -258,10 +258,19 @@ When selecting components, consult this inventory. All components live in `remot
 |---|---|---|
 | `HeroTextCard` | Giant text on solid bg, fills full frame | Name reveals, concept cards, section labels, emotional keywords (no avatar) |
 | `OverlayKeyword` | Large text overlaid on whatever is behind it | Emotional keywords ON avatar, numbers ON charts, CTA text |
-| `KeywordFadeIn` | Words fade in with stagger | Feature names, tool names (cinematic style) |
+| `KeywordFadeIn` | Words fade in with stagger (word-level) | Feature names, tool names, short phrases (cinematic style) |
+| `CharKeyword` | Characters pop in individually (char-level, `remotion-animate-text`) | Single-word emphasis: hook words like "WRONG", "ZERO", "FREE", "6X". More explosive than KeywordFadeIn. Presets: explode / rise / cascade |
 | `NumberPopup` | Colored badge with number + label | Numbered lists, stat reveals (cinematic style) |
 | `BadgePopup` | Small pill badge | Labels, tags, source badges |
 | `StrikethroughSwap` | Old value crossed out, new value slides in | Before/after, negation (cinematic style) |
+| `LogoOverlay` | SVG logo with optional background card, optional bounce + trail animation, vertical + horizontal positioning | **Brand reveals (mandatory when a brand is named in the script)**, hook brand walls, corner badges. Use `trail={true}` with `bounce={true}` on hook logos for motion blur energy. |
+| `LottieOverlay` | Animated brand logo from Lottie JSON file (`@remotion/lottie`) | Brand reveals when a Lottie animation is available — prefer over `LogoOverlay` for animated opens. Same positioning API. Source JSON from LottieFiles.com or brand resources. |
+| `FeatureMockup` | Card with SVG icon + label + bullet details | Feature visualizations during pain-elim or proof beats. Pull preset configs from `lib/feature_mockups/presets.json`. |
+| `BarWaveform` *(clippkit)* | Audio-driven bar waveform | Bottom-of-frame motion during avatar talking-head beats — visualizes the actual narration audio |
+| `CircularWaveform` *(clippkit)* | Audio-driven circular orb | Centered audio orb visualization — alternative to bar waveform |
+| `GlitchText` *(clippkit)* | Destabilized RGB-split text | High-impact dramatic emphasis (pain payoffs, "GONE" moments) — pair with FlashReset |
+| `TypingText` *(clippkit)* | Terminal/chat typing simulation with blinking cursor | "Claude is typing right now" mockups, CLI command demos, prompt input visualizations |
+| `ToastCard` *(clippkit)* | Notification card with spring entry from any corner | Trust beat sub-cards, brief proof callouts, "this just happened" notifications |
 | `Caption` | Bottom-of-screen subtitle text | Always present |
 
 ### Backgrounds & effects
@@ -271,10 +280,11 @@ When selecting components, consult this inventory. All components live in `remot
 | `AuroraBackground` | White base with drifting pastel blobs | Demo/split scenes (cinematic style) |
 | `GradientMesh` | Dark moody gradient | CTA/outro (cinematic style) |
 | `FlashReset` | 2-3 frame white flash | Section dividers (editorial style) |
+| `LightLeakOverlay` | WebGL cinematic light flare (`@remotion/light-leaks`) | Scene transitions in cinematic-presenter style. Softer than FlashReset — organic flare vs hard flash. Use inside `TransitionSeries.Overlay`. `hueShift` maps to brand color (0=warm, 200=blue, 20=Anthropic orange). Max 1 per reel (same flash budget as FlashReset). |
 | `ChapterDivider` | Logo + title on solid bg | Tool introductions, section resets |
 | `ComparisonGrid` | Side-by-side screenshots with VS divider | A vs B comparisons |
 | `CardStack` | Staggered card reveal | Numbered lists, feature lists |
-| `AnnotationCircle` | Hand-drawn SVG circle | Calling attention to UI elements |
+| `AnnotationCircle` | Hand-drawn SVG annotation (`@remotion/paths` evolvePath) | Ellipse shape: circle around UI elements. Underline shape (`shape="underline"`): underline beneath text or numbers in proof screenshots. Draw-on animation is frame-accurate. |
 | `CursorClick` | Cursor with click ripple | Simulating button clicks |
 | `NoiseOverlay` | Film grain texture | Always present (subtle) |
 
@@ -285,4 +295,51 @@ Only build a new component if:
 2. The content type will appear in multiple reels (not a one-off)
 3. The component can be described in one sentence
 
+**Before building a new component, check the vendored libraries and installed packages:**
+
+1. **`remotion/src/components/effects/clippkit/`** — vendored from clippkit (MIT). Includes BarWaveform, CircularWaveform, GlitchText, TypingText, ToastCard. See `clippkit/NOTICE.md` for the full list and instructions for vendoring more from upstream at https://github.com/reactvideoeditor/clippkit.
+2. **`lib/feature_mockups/presets.json`** — pre-built `FeatureMockup` configs (sandboxing, credentials, checkpointing, tracing, monitoring, scaling, integration, performance, automation, permissions, encryption, search). Pull via `from lib.feature_mockups import preset`.
+3. **`@remotion/paths`** — `evolvePath()` for SVG draw-on animation. Used by `AnnotationCircle`. Import directly for one-off path animations (arrows, underlines, custom shapes).
+4. **`@remotion/motion-blur`** — `Trail` component. Exposed via `LogoOverlay trail={true}`. Import directly for trail on any custom-built animated element.
+5. **`@remotion/lottie`** — Lottie JSON playback. Use `LottieOverlay` for brand reveals. Import `Lottie` directly for inline one-off Lottie animations.
+6. **`remotion-animate-text`** — Character/word-level text animation. Use `CharKeyword` for single-word explosive reveals. Import `AnimatedText` directly for custom text presets.
+7. **`@remotion/light-leaks`** — WebGL light flare. Use `LightLeakOverlay` as-is — no need to import directly.
+
 If a beat needs a one-off visual, use inline JSX in ReelComposition.tsx instead of creating a new component file.
+
+### Mandatory: brand logos at Phase 4b-ii
+
+When a beat names a brand (in narration OR shot list), the brand logo SVG **MUST** be wired into the timeline as a `LogoOverlay` entry. Text-only references to brand names without the logo are a fitness audit failure — they were a recurring gap in past reels until this rule was added.
+
+**Workflow:**
+1. At Phase 4b-i, identify every brand named in the script
+2. Phase 4b-ii component mapping table must list a `LogoOverlay` for each brand
+3. Phase 4d asset prep must ensure the brand SVGs are in `remotion/public/brands/`
+4. Phase 5 assembly must include the `LogoOverlay` entries in `timeline.json`
+
+**Sourcing brand logos via `lib.assets`:**
+
+```bash
+# AI/LLM brands (LobeHub Mono extraction): Anthropic, Claude, ClaudeCode,
+# OpenAI, Gemini, Notion, Mistral, Meta, etc.
+python -m lib.assets ai-brand Anthropic --project <slug>
+python -m lib.assets ai-brand ClaudeCode --project <slug>
+python -m lib.assets ai-brands  # list all available
+
+# SaaS brands (Simple Icons CDN): Asana, Rakuten, GitHub, Atlassian, etc.
+python -m lib.assets brand notion --project <slug>
+python -m lib.assets brands Asana Rakuten GitHub --project <slug>
+```
+
+After fetching, copy the SVGs to `remotion/public/brands/` during Phase 4d.
+
+**Colored variants of LobeHub Mono SVGs:** Remotion's `<Img>` does NOT propagate CSS color into SVG content (SVG-in-img is treated as opaque). To render a logo in a theme color, create a duplicate SVG file with the color baked in:
+
+```svg
+<!-- public/brands/ClaudeCode-orange.svg -->
+<svg viewBox="0 0 24 24" fill-rule="evenodd">
+  <path d="..." fill="#D97757"/>
+</svg>
+```
+
+Then reference the colored variant from the timeline. See `feedback_svg_color_through_img.md` for details.

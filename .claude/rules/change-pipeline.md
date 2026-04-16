@@ -46,14 +46,53 @@ Read `AvatarVideo.tsx` and note:
 - Content must fill top 40% — container height must be `"40%"` to meet the avatar boundary
 - Any mismatch creates a visible white gap between content and avatar
 
-## Step 4 — Verify after every change
+## Step 4 — Choose your edit mode
+
+Before writing any code, choose the edit mode based on how much of the file is changing:
+
+| Change scope | Mode | Tool |
+|---|---|---|
+| **< 30% of file** — fix one constant, rename one prop, reposition one element | **Targeted** | `Edit` with `old_string` / `new_string` |
+| **> 50% of file** — major feature addition, full component rewrite, large refactor | **Full replacement** | `Write` with complete new file content |
+| **30–50%** | Choose based on which is safer — default to targeted | Either |
+
+**Targeted edit rules:**
+- `old_string` must be unique in the file — add surrounding context to disambiguate if needed
+- Change ONLY what was asked — no reformatting, no restructuring adjacent code
+- Verify the edit did not shift indentation or affect adjacent blocks
+
+**Full replacement rules:**
+- Read the current file first — never overwrite without understanding the existing code
+- Preserve all existing prop interfaces (no silent prop removals)
+- All constants, imports, and exports must be carried forward
+
+## Step 5 — Verify after every change
 
 After implementing a change:
 
-1. **Compile check** — `npx tsc --noEmit`
+1. **Compile check** — `cd remotion && npx tsc --noEmit`
+   - If errors → run `python -m lib.compile_fix --prompt` for a formatted fix prompt with line context
+   - Fix errors before rendering — never render with TypeScript errors
 2. **Render the affected frames** — extract stills at the exact timestamps where the change applies
 3. **Inspect visually** — don't just check "did it compile" — look at the actual rendered frame
 4. **Compare against what the user asked for** — re-read the user's request and verify the output matches their words, not your interpretation
+
+### Error correction loop
+
+When `tsc --noEmit` fails:
+
+```bash
+# Get a formatted fix prompt with file:line context for every error
+python -m lib.compile_fix --prompt
+```
+
+The output includes:
+- File path and line number for each error
+- Surrounding code context with an arrow at the error line  
+- Reminder of reserved names that must never be shadowed
+- Ready-to-use prompt format
+
+Paste the output as your next message to get targeted fixes. After applying fixes, re-run `python -m lib.compile_fix` to verify clean compilation.
 
 ## Rule: Never remove what the user asks to fix
 

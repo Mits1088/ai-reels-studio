@@ -41,6 +41,52 @@ Priority order on screen:
 4. avatar presence
 5. supporting motion and effects
 
+## Hook Motion Accounting (mandatory for all reels)
+
+The first 3 seconds determine whether the viewer keeps watching. **Tame hooks fail.**
+
+For every hook, count visual elements per second in the first 3 seconds. **Aim for ≥4 simultaneous elements in motion**, all visible from the moment the reel starts:
+
+| Element class | Examples |
+|---|---|
+| **Real product UI** | Screenshot or video clip of actual product (Claude Console, Notion workspace, ChatGPT interface). NOT stock footage. NOT abstract gradients. |
+| **Continuously animating element** | Bouncing logo (`LogoOverlay` with `bounce: true`), Ken Burns zoom on a screenshot, scrolling text, cycling demo screenshots, rotating mark |
+| **Recognizable brand mark** | `LogoOverlay` showing the actual SVG logo of the product or a named customer |
+| **Avatar (in split-screen)** | Talking head must NEVER be the sole element — always paired with at least one other visual |
+| **Caption with the value claim** | The first spoken phrase as a visible caption |
+| **SFX hit on entry** | Whoosh, impact, or pop on the first frame to mark the reel start |
+
+### Self-test (must pass before approving the hook at Phase 4b-i)
+
+- [ ] First frame contains real product UI (not just an avatar)
+- [ ] At least one element is in continuous motion through the entire hook (bounce, zoom, scroll, cycle)
+- [ ] At least one brand logo SVG is visible from the first 1-2 seconds
+- [ ] Caption is readable in the first frame
+- [ ] Total simultaneous visual elements in any frame of the first 3s ≥ 4
+
+### Banned hook patterns
+
+- Avatar full-screen alone with no overlays
+- Single text card with no other motion
+- Empty warm-beige / dark background with the avatar still fading in
+- "Clean minimalism" — minimalism is for body beats, not hooks
+- Static screenshot without zoom or motion (it must move)
+
+### Default hook scaffolding
+
+Use this structure as the starting point for any new reel hook:
+
+1. **Top 40%** — split-screen with real product UI screenshot (with Ken Burns zoom)
+2. **Bottom 60%** — avatar talking
+3. **Top of frame** — bouncing brand logo (e.g. `LogoOverlay` with `bounce: true, bounceAmplitude: 28-32, bounceFrequency: 2.4-3.0 Hz`)
+4. **Avatar chest area** — sequential brand logos appearing on each named brand (`LogoOverlay` at `position: center-bottom`)
+5. **Captions** — value claim line at the bottom safe zone
+6. **SFX** — whoosh on entry + pop per logo entry
+
+That structure produces 4-5 simultaneous elements throughout the first 3 seconds. Iterate from there if a beat needs more.
+
+See `feedback_hook_motion_intensity.md` in user memory for the editorial reasoning.
+
 ## Caption Style
 
 - captions must be large enough for mobile

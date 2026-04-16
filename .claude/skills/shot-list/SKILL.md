@@ -261,6 +261,36 @@ Read each beat's text from `audio/beat-map.json`. Classify using the narration c
 
 A single beat can combine classifications.
 
+### Step 2 — Registry lookup (run before reasoning)
+
+**Before** applying the component selection tables from `component-mapping.md`, run the beat registry lookup for the current style and classification. This gives you the deterministic answer — components, avatar layout, transition, background, SFX, and mandatory extras — without per-beat reasoning.
+
+```bash
+# Single beat lookup
+python -m lib.beat_registry lookup <style> <classification>
+
+# Examples:
+python -m lib.beat_registry lookup editorial-authority number_proof_with_asset
+python -m lib.beat_registry lookup cinematic-presenter hook_opening
+```
+
+Registry classification key mapping (snake_case):
+`emotional_keyword`, `staccato_claim`, `name_reveal`, `number_proof_with_asset`,
+`number_proof_no_asset`, `explanation_over_visual`, `direct_address`,
+`trust_credibility`, `contradiction_negation`, `list_item`, `comparison`,
+`cta`, `section_transition`, `hook_opening`, `reframe_montage`, `tool_intro_chapter`
+
+If the registry returns a result, use it directly. Only fall back to manual table reasoning if the classification is absent from the registry (add a new entry after completing the reel).
+
+Also check for matching beat fragments:
+
+```bash
+python -m lib.beat_fragments find <style> <classification>
+```
+
+If a fragment exists, adapt it instead of constructing the timeline entry from scratch.
+
+
 ### Step 2 — Select the component
 
 Use the style-specific component selection tables from `.claude/rules/component-mapping.md`.
