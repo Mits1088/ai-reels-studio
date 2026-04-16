@@ -1,3 +1,9 @@
+export interface CaptionToken {
+  text: string;
+  fromMs: number;
+  toMs: number;
+}
+
 export interface TransitionPreset {
   enter:
     | "punch" | "slide-up" | "slide-left" | "zoom-in" | "scale-pop"
@@ -39,12 +45,69 @@ export interface TimelineEntry {
   };
   zoom_moments?: ZoomMoment[];
   volume?: number;
-  display?: "responsive" | "center-full" | "hook-reveal" | "bg";
+  display?: "responsive" | "center-full" | "guided-demo" | "hook-reveal" | "bg";
+  /** Config for display:"guided-demo" — browser frame + virtual camera pan + spotlight highlight */
+  guided_demo?: {
+    url?: string;
+    show_frame?: boolean;
+    img_width?: number;   // original image width in px (for correct coordinate math)
+    img_height?: number;  // original image height in px
+    pan_moments?: Array<{ at: number; x: number; y: number }>;
+    highlight_moments?: Array<{
+      at: number;
+      duration: number;
+      /** IMAGE-SPACE percentages — % of original image dimensions, NOT screen space */
+      region: { x: number; y: number; w: number; h: number };
+      /** "border" = clean orange outline (default). "dim" = dark vignette spotlight. */
+      highlight_style?: "border" | "dim";
+      /** CSS color for the border annotation. Defaults to Claude orange. Only applies to "border" style. */
+      highlight_color?: string;
+    }>;
+  };
   loop?: boolean;
   playbackRate?: number;
   clipStartTime?: number;
   punchFrame?: number;
   notes?: string;
+  /** Word-level timing tokens from @remotion/captions createTikTokStyleCaptions.
+   *  When present, Caption.tsx renders karaoke-style word highlighting.
+   *  When absent, Caption.tsx falls back to frame-division (legacy). */
+  tokens?: CaptionToken[];
+
+  /** Optional explicit background color for the time range this entry covers.
+   *  Used by GenericReelComposition's getBackgroundAtTime helper to drive
+   *  per-beat background color (e.g. proof-escalation-editorial warm beige
+   *  #FAF9F5 vs cinematic-presenter white #FFFFFF). Falls back to layout-
+   *  derived defaults when omitted. */
+  bgColor?: string;
+
+  // ── Editorial planning fields (Phase A — type-only, additive) ──────────
+  // Populated by the edit-plan compiler (Phase C, lib/edit_plan/compile.py)
+  // so the rendered timeline carries its template + proof + caption-mode
+  // context for downstream tooling (critic, QA, learning, retrieval).
+  //
+  // GenericReelComposition does NOT consume these yet — they pass through
+  // unchanged. The JSON schema (lib/schemas/timeline.schema.json) will
+  // catch up in Phase C alongside the compiler. lib/grammar/ is the
+  // runtime source of truth for the proof_class and captionMode enums.
+  template_id?: string;
+  proof_class?:
+    | "existence"
+    | "breadth"
+    | "process"
+    | "output"
+    | "integration"
+    | "authority"
+    | "cta";
+  avatar_mode?: string;
+  splitRatio?: string;
+  captionMode?:
+    | "standard"
+    | "headline"
+    | "suppressed"
+    | "section-label"
+    | "badge-overlay";
+  proof_protected?: boolean;
 }
 
 export interface OverlayEntry {

@@ -2,6 +2,7 @@ import React from "react";
 import { useCurrentFrame, interpolate, OffthreadVideo, staticFile, spring, useVideoConfig } from "remotion";
 import type { TimelineEntry } from "../../types";
 import { getPreset } from "../transitions/presets";
+import { CONTENT_HEIGHT_PCT } from "../../utils";
 import { TransitionWrapper } from "../transitions/TransitionWrapper";
 import { GlowBorder } from "../effects/GlowBorder";
 import { PunchInZoom } from "../effects/PunchInZoom";
@@ -86,12 +87,12 @@ export const BRollVideo: React.FC<{
     );
   }
 
-  // ── responsive: fills top 40%, flush with avatar below ──
+  // ── responsive: fills top CONTENT_HEIGHT_PCT%, flush with avatar below ──
   if (display === "responsive") {
     return (
       <div style={{
         position: "absolute", top: 0, left: 0, right: 0,
-        height: "40%",
+        height: `${CONTENT_HEIGHT_PCT}%`,
         overflow: "hidden",
         zIndex: 10,
       }}>
@@ -142,7 +143,7 @@ export const BRollVideo: React.FC<{
 
   // ── default split-screen / full-screen ──
   const containerStyle: React.CSSProperties = splitScreen
-    ? { position: "absolute", top: 0, left: 0, right: 0, height: "40%", overflow: "hidden" }
+    ? { position: "absolute", top: 0, left: 0, right: 0, height: `${CONTENT_HEIGHT_PCT}%`, overflow: "hidden" }
     : { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 };
 
   return (

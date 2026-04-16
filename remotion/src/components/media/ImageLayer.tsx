@@ -1,6 +1,7 @@
 import React from "react";
 import type { TimelineEntry } from "../../types";
 import { getPreset } from "../transitions/presets";
+import { CONTENT_HEIGHT_PCT } from "../../utils";
 import { TransitionWrapper } from "../transitions/TransitionWrapper";
 import { FramedImage } from "./FramedImage";
 
@@ -30,7 +31,7 @@ export const ImageLayer: React.FC<{
   }
 
   const containerStyle: React.CSSProperties = splitScreen
-    ? { position: "absolute", top: 0, left: 0, right: 0, height: "40%", overflow: "hidden" }
+    ? { position: "absolute", top: 0, left: 0, right: 0, height: `${CONTENT_HEIGHT_PCT}%`, overflow: "hidden" }
     : { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 };
 
   return (

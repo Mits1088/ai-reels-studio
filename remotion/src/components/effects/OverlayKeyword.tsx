@@ -6,6 +6,7 @@ import {
   interpolate,
   spring,
 } from "remotion";
+import { fitText } from "@remotion/layout-utils";
 
 /**
  * OverlayKeyword — Large word placed over the talking-head at chest level.
@@ -26,6 +27,8 @@ export const OverlayKeyword: React.FC<{
   strikethroughColor?: string;
   strikethroughDelay?: number;
   shadowStrength?: "none" | "subtle" | "strong";
+  /** When true, auto-sizes text to fill 80% of frame width. Caps at 140px. */
+  autoSize?: boolean;
 }> = ({
   text,
   durationInFrames,
@@ -37,9 +40,22 @@ export const OverlayKeyword: React.FC<{
   strikethroughColor = "#DC2626",
   strikethroughDelay = 10,
   shadowStrength = "strong",
+  autoSize = false,
 }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, width } = useVideoConfig();
+
+  const resolvedFontSize = autoSize
+    ? Math.min(
+        140,
+        fitText({
+          text,
+          fontFamily: "Inter",
+          fontWeight: String(fontWeight),
+          withinWidth: width * 0.80,
+        }).fontSize
+      )
+    : fontSize;
 
   // ── Entry: spring scale pop ──
   const s = spring({
@@ -116,7 +132,7 @@ export const OverlayKeyword: React.FC<{
         {/* Keyword text */}
         <span
           style={{
-            fontSize,
+            fontSize: resolvedFontSize,
             fontWeight,
             color,
             fontFamily: "'Inter', system-ui, -apple-system, sans-serif",

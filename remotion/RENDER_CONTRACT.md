@@ -46,6 +46,31 @@ This is the handoff between the planning pipeline and the renderer.
 | `clipStartTime` | no | number | Trim start in seconds |
 | `notes` | no | string | Editorial notes (ignored by renderer) |
 
+## TimelineEntry — editorial planning fields (Phase C)
+
+These fields are written by the edit-plan compiler (`lib/edit_plan/compile.py`)
+so the rendered timeline carries its template + proof + caption-mode context.
+**Phase C update:** they are now formally enumerated in
+`lib/schemas/timeline.schema.json` (under `$defs.visual_lane.properties`)
+alongside the existing render-hint fields. The compiler attaches them only
+when invoked with `attach_planning_fields=True`. `GenericReelComposition`
+still does not consume them at runtime — they are pure metadata for
+downstream tooling (critic in Phase E, learning in Phase F, retrieval).
+
+| Field | Type | Source | Notes |
+|---|---|---|---|
+| `template_id` | string | edit-plan | Layout template id from `training/derived/template-registry.json` |
+| `proof_class` | string | edit-plan | One of: `existence`, `breadth`, `process`, `output`, `integration`, `authority`, `cta` |
+| `avatar_mode` | string | edit-plan | Free-form descriptor (`"full-screen, clean"`, `"visible, bottom 35%"`, ...) |
+| `splitRatio` | string | edit-plan | E.g. `"40/60"`, `"65/35"`, `"100/0"`, `"50/50"`, `"0/100"` |
+| `captionMode` | string | edit-plan | One of: `standard`, `headline`, `suppressed`, `section-label`, `badge-overlay` |
+| `proof_protected` | boolean | edit-plan | `true` for beats whose proof asset must not be substituted with b-roll (already read by `lib/qa/checks.py:check_style_compliance`) |
+
+The `lib/grammar/` package is the runtime source of truth for the
+`proof_class` and `captionMode` enums. `lib/test_contracts.py` enforces
+drift detection between the Python grammar, the new
+`lib/schemas/edit_plan.schema.json`, and this contract.
+
 ## OverlayEntry (overlays lane)
 
 | Field | Required | Type | Notes |

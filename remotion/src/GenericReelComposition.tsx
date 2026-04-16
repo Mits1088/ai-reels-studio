@@ -3,19 +3,34 @@ import {
   AbsoluteFill, Audio, Sequence, staticFile, Img,
   useCurrentFrame, interpolate, OffthreadVideo,
 } from "remotion";
-import type { Timeline, TimelineEntry, OverlayEntry } from "./types";
-import { toFrame } from "./utils";
+import type { Timeline, TimelineEntry, OverlayEntry, TransitionPreset } from "./types";
+import { toFrame, CONTENT_HEIGHT_PCT } from "./utils";
 
 // Components used by the generic renderer
-import { OverlayKeyword } from "./components/effects/OverlayKeyword";
-import { BadgePopup }      from "./components/effects/BadgePopup";
-import { KeywordFadeIn }   from "./components/effects/KeywordFadeIn";
-import { NumberPopup }     from "./components/effects/NumberPopup";
-import { NoiseOverlay }    from "./components/effects/NoiseOverlay";
-import { PunchInZoom }     from "./components/effects/PunchInZoom";
-import { Caption }         from "./components/Caption";
-import { AvatarVideo }     from "./components/media/AvatarVideo";
-import { FramedImage }     from "./components/media/FramedImage";
+import { OverlayKeyword }    from "./components/effects/OverlayKeyword";
+import { BadgePopup }        from "./components/effects/BadgePopup";
+import { KeywordFadeIn }     from "./components/effects/KeywordFadeIn";
+import { NumberPopup }       from "./components/effects/NumberPopup";
+import { NoiseOverlay }      from "./components/effects/NoiseOverlay";
+import { PunchInZoom }       from "./components/effects/PunchInZoom";
+import { HeroTextCard }      from "./components/effects/HeroTextCard";
+import { CardStack }         from "./components/effects/CardStack";
+import { FlashReset }        from "./components/effects/FlashReset";
+import { StrikethroughSwap } from "./components/effects/StrikethroughSwap";
+import { LogoOverlay }       from "./components/effects/LogoOverlay";
+import { FeatureMockup }     from "./components/effects/FeatureMockup";
+// clippkit (vendored, MIT) — see remotion/src/components/effects/clippkit/NOTICE.md
+import { BarWaveform }       from "./components/effects/clippkit/BarWaveform";
+import { CircularWaveform }  from "./components/effects/clippkit/CircularWaveform";
+import { GlitchText }        from "./components/effects/clippkit/GlitchText";
+import { TypingText }        from "./components/effects/clippkit/TypingText";
+import { ToastCard }         from "./components/effects/clippkit/ToastCard";
+import { Caption }           from "./components/Caption";
+import { AvatarVideo }       from "./components/media/AvatarVideo";
+import { FramedImage }       from "./components/media/FramedImage";
+import { GuidedDemo }        from "./components/effects/GuidedDemo";
+import { AnnotationCircle }  from "./components/effects/AnnotationCircle";
+import { TransitionWrapper } from "./components/transitions/TransitionWrapper";
 
 // ── Overlay component registry ────────────────────────────────────────────
 // Maps overlay type strings from timeline.json to React components.
@@ -26,11 +41,25 @@ const OVERLAY_REGISTRY: Record<string, React.FC<any>> = {
   BadgePopup,
   KeywordFadeIn,
   NumberPopup,
+  HeroTextCard,
+  CardStack,
+  FlashReset,
+  StrikethroughSwap,
+  LogoOverlay,
+  FeatureMockup,
+  // clippkit (vendored MIT)
+  BarWaveform,
+  CircularWaveform,
+  GlitchText,
+  TypingText,
+  ToastCard,
+  // annotation
+  AnnotationCircle,
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
-const SPLIT_H = "40%";
+const SPLIT_H = `${CONTENT_HEIGHT_PCT}%`;
 const splitTopStyle: React.CSSProperties = {
   position: "absolute", top: 0, left: 0, right: 0,
   height: SPLIT_H, overflow: "hidden", zIndex: 10,
@@ -44,7 +73,7 @@ function computeCenterFullRanges(timeline: Timeline): { start: number; end: numb
     ...(timeline.lanes.broll || []),
   ];
   for (const e of entries) {
-    if (e.display === "center-full") {
+    if (e.display === "center-full" || e.display === "guided-demo") {
       ranges.push({ start: e.start, end: e.end });
     }
   }
@@ -62,10 +91,14 @@ function computeCenterFullRanges(timeline: Timeline): { start: number; end: numb
   return merged;
 }
 
-/** Determine background color based on avatar layout at a given time */
+/** Determine background color based on avatar layout at a given time.
+ *  Honors per-entry `bgColor` override (used by proof-escalation-editorial
+ *  for warm beige #FAF9F5, dark #1A1A1A, etc). Falls back to layout-derived
+ *  defaults for cinematic-presenter style. */
 function getBackgroundAtTime(avatarEntries: TimelineEntry[], time: number): string {
   for (const e of avatarEntries) {
     if (time >= e.start && time < e.end) {
+      if (e.bgColor) return e.bgColor;
       return e.layout === "full-screen" ? "#1A1A2E" : "#FFFFFF";
     }
   }
@@ -93,13 +126,18 @@ function buildBackgroundSegments(
   return segments;
 }
 
-/** Background crossfade helper */
+/** Background crossfade helper.
+ *  Note: this component is rendered inside a parent <Sequence>, so
+ *  useCurrentFrame() already returns the local frame (starting from 0
+ *  at the Sequence start). Do NOT subtract `fromSec` — that would push
+ *  localFrame negative and clamp opacity to 0, making every bg segment
+ *  after the first invisible. The fromSec prop is now unused but kept
+ *  in the signature for backwards compatibility with any callers. */
 const SeamCrossfade: React.FC<{
   fromSec: number; durFrames: number; children: React.ReactNode;
-}> = ({ fromSec, durFrames, children }) => {
+}> = ({ durFrames, children }) => {
   const frame = useCurrentFrame();
-  const localFrame = frame - toFrame(fromSec);
-  const opacity = interpolate(localFrame, [0, durFrames], [0, 1],
+  const opacity = interpolate(frame, [0, durFrames], [0, 1],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   return <div style={{ opacity, position: "absolute", inset: 0 }}>{children}</div>;
 };
@@ -126,10 +164,10 @@ export const GenericReelComposition: React.FC<{ timeline: Timeline }> = ({ timel
           durationInFrames={Math.max(1, toFrame(seg.end - seg.start))}
         >
           {i === 0 ? (
-            <AbsoluteFill style={{ background: seg.color }} />
+            <AbsoluteFill style={{ background: seg.color, zIndex: 0 }} />
           ) : (
             <SeamCrossfade fromSec={seg.start} durFrames={8}>
-              <AbsoluteFill style={{ background: seg.color }} />
+              <AbsoluteFill style={{ background: seg.color, zIndex: 0 }} />
             </SeamCrossfade>
           )}
         </Sequence>
@@ -187,17 +225,47 @@ export const GenericReelComposition: React.FC<{ timeline: Timeline }> = ({ timel
         );
       })}
 
-      {/* ════════ DEMO IMAGES (split-screen with zoom) ════════ */}
+      {/* ════════ DEMO IMAGES ════════ */}
       {(timeline.lanes.demo || []).map((entry, i) => {
         if (!entry.asset) return null;
-        const isCenterFull = entry.display === "center-full";
+        const dur = Math.max(1, toFrame(entry.end - entry.start));
 
-        if (isCenterFull) {
+        // ── Guided demo: browser frame + virtual camera pan + spotlight ──
+        if (entry.display === "guided-demo") {
+          return (
+            <Sequence
+              key={`demo-gd-${i}`}
+              from={toFrame(entry.start)}
+              durationInFrames={dur}
+              premountFor={10}
+            >
+              <AbsoluteFill style={{ zIndex: 12 }}>
+                {isVideo(entry.asset) ? (
+                  <OffthreadVideo
+                    src={staticFile(entry.asset)}
+                    muted
+                    playbackRate={entry.playbackRate ?? 1}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                ) : (
+                  <GuidedDemo
+                    asset={entry.asset}
+                    durationInFrames={dur}
+                    guidedDemo={entry.guided_demo}
+                  />
+                )}
+              </AbsoluteFill>
+            </Sequence>
+          );
+        }
+
+        // ── Center-full: full-frame video or image ───────────────────────
+        if (entry.display === "center-full") {
           return (
             <Sequence
               key={`demo-cf-${i}`}
               from={toFrame(entry.start)}
-              durationInFrames={Math.max(1, toFrame(entry.end - entry.start))}
+              durationInFrames={dur}
               premountFor={10}
             >
               <AbsoluteFill style={{ zIndex: 12, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -220,29 +288,37 @@ export const GenericReelComposition: React.FC<{ timeline: Timeline }> = ({ timel
           );
         }
 
-        // Default: split-screen demo in top 40%
+        // ── Default: split-screen demo in top 40% ───────────────────────
+        const splitContent = isVideo(entry.asset) ? (
+          <OffthreadVideo
+            src={staticFile(entry.asset)}
+            muted
+            playbackRate={entry.playbackRate ?? 1}
+            style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }}
+          />
+        ) : (
+          <FramedImage
+            src={entry.asset}
+            splitScreen
+            zoomMoments={entry.zoom_moments}
+          />
+        );
         return (
           <Sequence
             key={`demo-${i}`}
             from={toFrame(entry.start)}
-            durationInFrames={Math.max(1, toFrame(entry.end - entry.start))}
+            durationInFrames={dur}
             premountFor={5}
           >
             <div style={splitTopStyle}>
-              {isVideo(entry.asset) ? (
-                <OffthreadVideo
-                  src={staticFile(entry.asset)}
-                  muted
-                  playbackRate={entry.playbackRate ?? 1}
-                  style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }}
-                />
-              ) : (
-                <FramedImage
-                  src={entry.asset}
-                  splitScreen
-                  zoomMoments={entry.zoom_moments}
-                />
-              )}
+              {entry.transition_preset ? (
+                <TransitionWrapper
+                  durationInFrames={dur}
+                  preset={entry.transition_preset as TransitionPreset}
+                >
+                  {splitContent}
+                </TransitionWrapper>
+              ) : splitContent}
             </div>
           </Sequence>
         );
@@ -295,8 +371,15 @@ export const GenericReelComposition: React.FC<{ timeline: Timeline }> = ({ timel
         const dur = Math.max(1, toFrame(entry.end - entry.start));
         const props = entry.props || {};
 
-        // BadgePopup and NumberPopup need a positioning wrapper
-        const needsWrapper = entry.type === "BadgePopup" || entry.type === "NumberPopup";
+        // BadgePopup, NumberPopup, and CardStack need a top-anchored
+        // positioning wrapper. Other overlays (HeroTextCard, OverlayKeyword,
+        // FlashReset, StrikethroughSwap) self-position via their own
+        // AbsoluteFill — but they STILL need an explicit zIndex 20 wrapper
+        // so they render ABOVE the avatar (zIndex 5/10), not behind it.
+        const needsTopAnchoredWrapper =
+          entry.type === "BadgePopup" ||
+          entry.type === "NumberPopup" ||
+          entry.type === "CardStack";
 
         return (
           <Sequence
@@ -304,7 +387,7 @@ export const GenericReelComposition: React.FC<{ timeline: Timeline }> = ({ timel
             from={toFrame(entry.start)}
             durationInFrames={dur}
           >
-            {needsWrapper ? (
+            {needsTopAnchoredWrapper ? (
               <AbsoluteFill style={{
                 display: "flex", alignItems: "flex-start", justifyContent: "center",
                 paddingTop: 80, zIndex: 20,
@@ -312,7 +395,9 @@ export const GenericReelComposition: React.FC<{ timeline: Timeline }> = ({ timel
                 <Component durationInFrames={dur} {...props} />
               </AbsoluteFill>
             ) : (
-              <Component durationInFrames={dur} {...props} />
+              <AbsoluteFill style={{ zIndex: 20 }}>
+                <Component durationInFrames={dur} {...props} />
+              </AbsoluteFill>
             )}
           </Sequence>
         );

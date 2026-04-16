@@ -6,6 +6,7 @@ import {
   interpolate,
   spring,
 } from "remotion";
+import { fitText } from "@remotion/layout-utils";
 
 /**
  * HeroTextCard — Large center-weighted text on a solid color background.
@@ -28,6 +29,9 @@ export const HeroTextCard: React.FC<{
   subtitle?: string;
   subtitleColor?: string;
   subtitleFontSize?: number;
+  /** When true, ignores fontSize prop and auto-sizes text to fill 88% of frame width.
+   *  Caps at 160px to avoid absurdly large single characters. */
+  autoSize?: boolean;
 }> = ({
   text,
   durationInFrames,
@@ -40,9 +44,23 @@ export const HeroTextCard: React.FC<{
   subtitle,
   subtitleColor,
   subtitleFontSize = 36,
+  autoSize = false,
 }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, width } = useVideoConfig();
+
+  // Auto-size: fit text to 88% of frame width, cap at 160px
+  const resolvedFontSize = autoSize
+    ? Math.min(
+        160,
+        fitText({
+          text,
+          fontFamily: "Inter",
+          fontWeight: String(fontWeight),
+          withinWidth: width * 0.88,
+        }).fontSize
+      )
+    : fontSize;
 
   // ── Entry: scale-pop-overshoot ──
   const entryScale = withOvershoot
@@ -117,7 +135,7 @@ export const HeroTextCard: React.FC<{
       <div
         style={{
           transform: `scale(${entryScale})`,
-          fontSize,
+          fontSize: resolvedFontSize,
           fontWeight,
           color: textColor,
           fontFamily: "'Inter', system-ui, -apple-system, sans-serif",

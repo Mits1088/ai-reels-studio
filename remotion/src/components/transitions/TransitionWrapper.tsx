@@ -7,6 +7,7 @@ import {
   Easing,
   random,
 } from "remotion";
+import { noise2D } from "@remotion/noise";
 import type { TransitionPreset } from "../../types";
 
 function exitOpacityCalc(frame: number, dur: number, preset: TransitionPreset): number {
@@ -23,12 +24,23 @@ function exitOpacityCalc(frame: number, dur: number, preset: TransitionPreset): 
   );
 }
 
-const KenBurnsWrap: React.FC<{ dur: number; children: React.ReactNode }> = ({ dur, children }) => {
+// ── Ken Burns constants ───────────────────────────────────────────────────────
+// Timing
+const KB_DRIFT_MAX = 1.06;     // max scale at clip end (6% slow zoom toward focal point)
+// Motion — noise2D returns ~[-1, 1]; multiply by amp to get pixel range
+const KB_NOISE_FREQ = 0.004;   // sampling frequency (lower = slower, more organic drift)
+const KB_PAN_X_AMP = 7;        // horizontal pan amplitude in px
+const KB_PAN_Y_AMP = 4;        // vertical pan amplitude in px (subtle, eyes track horizontal)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const KenBurnsWrap: React.FC<{ dur: number; seed?: string; children: React.ReactNode }> = ({ dur, seed = "kb", children }) => {
   const frame = useCurrentFrame();
-  const drift = interpolate(frame, [0, dur], [1.0, 1.06], { extrapolateRight: "clamp" });
-  const panX = Math.sin(frame * 0.005) * 6;
+  const drift = interpolate(frame, [0, dur], [1.0, KB_DRIFT_MAX], { extrapolateRight: "clamp" });
+  // noise2D returns values in roughly [-1, 1] — gives organic, non-repeating pan
+  const panX = noise2D(`${seed}-x`, frame * KB_NOISE_FREQ, 0) * KB_PAN_X_AMP;
+  const panY = noise2D(`${seed}-y`, 0, frame * KB_NOISE_FREQ) * KB_PAN_Y_AMP;
   return (
-    <div style={{ width: "100%", height: "100%", transform: `scale(${drift}) translateX(${panX}px)` }}>
+    <div style={{ width: "100%", height: "100%", transform: `scale(${drift}) translate(${panX}px, ${panY}px)` }}>
       {children}
     </div>
   );
@@ -248,12 +260,13 @@ export const TransitionWrapper: React.FC<{
     }
   }
 
-  // ── Ken Burns ──
+  // ── Ken Burns (noise-driven for organic, non-repeating drift) ──
   let kenBurnsTransform = "";
   if (preset.kenBurns) {
-    const drift = interpolate(frame, [0, durationInFrames], [1.0, 1.06], { extrapolateRight: "clamp" });
-    const panX = Math.sin(frame * 0.005) * 6;
-    kenBurnsTransform = `scale(${drift}) translateX(${panX}px)`;
+    const drift = interpolate(frame, [0, durationInFrames], [1.0, KB_DRIFT_MAX], { extrapolateRight: "clamp" });
+    const panX = noise2D("kb-x", frame * KB_NOISE_FREQ, 0) * KB_PAN_X_AMP;
+    const panY = noise2D("kb-y", 0, frame * KB_NOISE_FREQ) * KB_PAN_Y_AMP;
+    kenBurnsTransform = `scale(${drift}) translate(${panX}px, ${panY}px)`;
   }
 
   const combinedTransform = [enterTransform, exitTransform, kenBurnsTransform].filter(Boolean).join(" ");

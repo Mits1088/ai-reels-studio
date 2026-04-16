@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "remotion studio src/index.ts",
-    "build": "remotion render src/index.ts ChatGPTHiddenCodes out/reel.mp4",
+    "build": "remotion render src/index.ts ReelComposition out/reel.mp4",
     "preview": "remotion preview src/index.ts"
   },
   "keywords": [],
@@ -12,13 +12,29 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@remotion/cli": "^4.0.438",
-    "@remotion/player": "^4.0.438",
+    "@lobehub/icons": "^5.4.0",
+    "@remotion/animation-utils": "4.0.448",
+    "@remotion/captions": "4.0.448",
+    "@remotion/cli": "4.0.448",
+    "@remotion/elevenlabs": "4.0.448",
+    "@remotion/layout-utils": "4.0.448",
+    "@remotion/light-leaks": "4.0.448",
+    "@remotion/lottie": "4.0.448",
+    "@remotion/media-utils": "4.0.448",
+    "@remotion/motion-blur": "4.0.448",
+    "@remotion/noise": "4.0.448",
+    "@remotion/paths": "4.0.448",
+    "@remotion/player": "4.0.448",
+    "@remotion/sfx": "4.0.448",
+    "@remotion/shapes": "4.0.448",
+    "@remotion/transitions": "4.0.448",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "lottie-web": "^5.13.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "remotion": "^4.0.438",
+    "remotion": "4.0.448",
+    "remotion-animate-text": "^1.1.0",
     "typescript": "^5.9.3"
   }
 }
