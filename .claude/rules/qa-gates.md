@@ -31,6 +31,18 @@ Some QA thresholds vary by the project's `style` field in `project.json`. Read t
 | Split-screen spacing check | required | required (hook + proof splits) |
 | Proof-protected enforcement | N/A | required — verify proof beats use real source assets |
 
+| Avatar presence hard max | N/A | N/A | 35% of total duration |
+| Avatar absence preferred max | 12s | 8s | 20s |
+| Avatar absence hard max | 15s | 12s | 35s (one block only) |
+| Consecutive gallery beats (no avatar) | 4 (center-full limit) | 5 (conditional) | No limit — expected |
+| Min unique images (30-40s reel) | 4 | 6 | 8 |
+| Min unique images (40-55s reel) | 6 | 8 | 12 |
+| Max single image hold w/o motion | 2s | 2s | 3s |
+| Background on gallery beats | AuroraBackground | Solid color | `#F8F8F8` white only — no Aurora/GradientMesh |
+| Caption suppression target | N/A | N/A | 50-65% |
+| VIDEO-FIRST on gallery beats | required | required | SUSPENDED — ALWAYS MOTION replaces it |
+| proof-display role cap | 40% max | 50% max | SUSPENDED — 60-80% expected |
+
 If the `style` field is missing or unrecognized, use `cinematic-presenter` thresholds.
 
 ---

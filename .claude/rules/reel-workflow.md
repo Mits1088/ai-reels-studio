@@ -121,12 +121,22 @@ The required order for every project is:
    - **PlaybackRate** confirmation for sped-up videos
    - **Zoom coordinates** for every static screenshot (mandatory — see below)
    
-   **Zoom coordinate rule (mandatory for all static screenshots):**
-   - Every screenshot that appears on screen for more than **1.5 seconds** must have at least one `zoom_moment` with specific `x`, `y`, `scale`, and `holdFor` values.
-   - Coordinates must target a **specific UI element** the narrator is describing (button, text field, result, chart) — not a vague "center of the image."
-   - Open the screenshot, identify the focal element, estimate its position as image percentage, then apply the letterbox formula if split-screen (see `visual-style.md`).
-   - Write the zoom coordinates into the technical planning table — do not defer to assembly or QA.
-   - If a screenshot has no identifiable focal point worth zooming into, the screenshot is wrong — find a better one.
+   **Freeze frame extraction (Phase 4d asset prep):**
+   - For every freeze frame beat, extract the exact PNG from its source video:
+     ```bash
+     ffmpeg -ss {clip_timestamp} -i demo-clip.mp4 -frames:v 1 -q:v 2 freeze-{beat_id}.png
+     ```
+   - `{clip_timestamp}` = seconds into the clip (not absolute timeline time) where the freeze should occur
+   - Copy the PNG to `remotion/public/` alongside the parent clip
+   - The pre-freeze clip (`demo-part1.mp4`) and post-freeze clip (`demo-part2.mp4`) are separate cuts from the source; the freeze timestamp is the split point
+
+   **Zoom coordinate rule (mandatory for ALL static images including freeze frames):**
+   - Every freeze frame and screenshot must have at least one `zoom_moment` — no exceptions.
+   - Freeze frames must zoom to the **specific element being highlighted** (the reason you froze the video).
+   - Coordinates must target a specific UI element (button, text field, result, chart) — not "center of image."
+   - Open the image, identify the focal element, estimate position as image percentage, apply the letterbox formula if split-screen (see `visual-style.md`).
+   - Write zoom coordinates into the technical planning table — never defer to assembly or QA.
+   - If a freeze frame has no identifiable focal element worth zooming into, it should not be a freeze frame — use a cut to a different video instead.
    
    Produces: technical planning section of `shot-list.md`
    **STOP for user approval** — technical planning (zoom coords, SFX plan, backgrounds)
@@ -183,6 +193,7 @@ The required order for every project is:
    If basic rendering works → proceed to Phase 6.
 6. **QA** — full editorial + technical + performance QA
 7. **render** — final export
+7b. **publish-prep** — Instagram caption + posting checklist (run immediately after every render)
 
 **QA always before render.** Never export until all QA gates pass.
 Run `python -m lib.qa.cli projects/<slug>` and resolve all blockers before
@@ -274,16 +285,16 @@ The creative/editorial pass. Produce a markdown table in `shot-list.md`:
 | beat-01 | 0.0–2.5 | "Did you know..." | b-roll | broll_scene_03.mp4 |
 | beat-02 | 2.5–5.1 | "Hidden codes..." | avatar | — |
 
-**Visual types:** avatar, demo video, demo image, b-roll, image montage, support, animated mock
+**Visual types (priority order):** demo video → freeze frame → b-roll → animated mock → demo image (last resort)
 
 **Rules:**
+- **VIDEO-FIRST (hard rule):** Always assign a real video clip as the primary demo asset. Static screenshots may ONLY appear as freeze frames sandwiched between pre-freeze and post-freeze video segments. Never assign a standalone screenshot as a proof beat's primary visual when video exists.
+- **Freeze frame pattern:** When a beat needs a visual pause for emphasis — assign three consecutive rows: `pre-clip.mp4 → freeze.png (zoom + annotation) → post-clip.mp4`. Mark as visual type `freeze frame`.
 - Every beat must have a visual assignment — no gaps
-- Demos come first; b-roll fills beats without dedicated demo coverage
-- If a beat has no demo or b-roll, assign avatar or support visual
-- **No static screenshot may hold for more than 2 seconds** — beats longer than 2.5s must be split into sub-beats with different screenshots
-- **Minimum screenshot count:** 6-8 distinct screenshots for a 30-40s reel, 8-12 for a 40-55s reel
-- When sourcing screenshots, extract **multiple different frames** showing different product states, pages, or features — one frame per proof section is never enough
-- After completing the table, count total unique screenshots. If below minimum, go back and extract more.
+- B-roll fills concept/bridge beats without dedicated demo coverage
+- If a beat has no demo or b-roll, assign avatar or animated mock
+- **ALWAYS MOTION (hard rule):** No beat may be completely static. Every video entry relies on clip motion. Every freeze frame requires `zoom_moments` + annotation. Every remaining screenshot requires Ken Burns + `zoom_moments`. No exceptions.
+- **Minimum video clips:** 4 for 25-35s reel, 6 for 35-45s reel, 8 for 45-55s reel
 - **STOP for user approval** before proceeding to component mapping
 
 ### Phase 4b-ii — Component Mapping + Asset Fitness

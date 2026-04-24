@@ -33,12 +33,14 @@ If `demo-flow.md` is missing, stop and run `/youtube demo-ingest` first.
 
 ## Load Reference Guides
 
-Read all three before writing:
+Read all five before writing:
 - `.claude/skills/youtube/references/algorithm-guide.md`
 - `.claude/skills/youtube/references/retention-guide.md`
 - `.claude/skills/youtube/references/voice-profile.md`
+- `.claude/skills/youtube/references/jack-roberts-techniques.md`
+- `.claude/skills/youtube/references/script-structure.md`
 
-These inform: hook structure, pattern interrupt placement, CTA timing, retention drop-off strategy, and the creator's spoken delivery style.
+These inform: hook structure, pattern interrupt placement, CTA timing, retention drop-off strategy, the creator's spoken delivery style, jargon translation patterns, three-phase demo mechanics, Mits-specific catchphrases and vocabulary rules, and chapter templates with exact text.
 
 ---
 

@@ -22,10 +22,16 @@
     "Demo videos must be center-full, not split-screen (responsive crops landscape content).",
     "Every layout change must have SFX. Silent hard cuts between sections are not allowed.",
     "CTA must feel earned — reference what was proven, not a generic ask.",
-    "Avatar must never be the sole element in the first second of the hook."
+    "Avatar must never be the sole element in the first second of the hook.",
+    "VIDEO-FIRST: Always use real video clips as the primary demo asset. Static screenshots are ONLY permitted as freeze frames extracted from the same video clip, sandwiched between pre-freeze and post-freeze video segments. Never use a standalone static screenshot as a proof beat's primary visual when video exists. EXCEPTION: When style is `image-showcase`, gallery beats are explicitly exempt — the product output IS a static image, so VIDEO-FIRST is suspended for gallery beats. ALWAYS MOTION still applies: every static image gallery beat must have zoom_moments, scroll animation, or grid stagger entry.",
+    "FREEZE-FRAME PATTERN: When highlighting a key moment in a video — pause it (freeze frame PNG extracted via ffmpeg at the exact timestamp), zoom into the specific element + AnnotationCircle annotation, then resume with the continuation clip. Always three entries: pre-clip.mp4 → freeze.png (with zoom_moments + annotation) → post-clip.mp4.",
+    "ALWAYS MOTION: No beat longer than 0.8s may be completely static. Every beat requires at least one active motion element: clip's own motion, motivated zoom, AnnotationCircle draw-on, or Ken Burns ambient drift. The `still` motion mode is only valid for beats under 0.8s where the entry transition carries all the energy.",
+    "Every static PNG in the timeline must have zoom_moments defined — no entry may have a static image with no zoom, annotation, or Ken Burns."
   ],
 
   "soft_preferences": [
+    "When the user provides a folder of 8+ visual output images as the primary content asset (not a screen recording or YouTube demo), default to `image-showcase` style — do not default to `cinematic-presenter`. The images being the product output is the signal.",
+    "When creative intent conflicts with style defaults — images-dominant vs avatar-dominant — create a new style profile rather than fighting the defaults with overrides. New styles are legitimate architectural responses to creative requests that don't fit the existing styles.",
     "Prefer calm, confident framing during strong spoken claims — authoritative stillness over reflex zoom.",
     "Proof should appear in the first 3 beats where possible.",
     "Component variety should feel designed, not randomized to hit a minimum count.",
@@ -71,6 +77,7 @@
   ],
 
   "motion_notes": [
+    "MOTION IS THE DEFAULT. The global motion-grammar.md stillness doctrine ('stillness is the premium default') is overridden for this creator. Motion is the baseline; stillness requires explicit justification (e.g. text card that must be readable, or a beat under 0.8s).",
     "Zoom is precision, not energy. Reserve it for moments with a specific named target.",
     "Calm confident framing during a strong spoken claim is more premium than a zoom reflex.",
     "Every beat: 1 hero motion, 1 support motion, 1 accent. No more.",
@@ -148,6 +155,13 @@
       "source": "system_init",
       "note": "Initial seed from accumulated memory system. All entries above reflect preferences established across multiple reel projects (chatgpt-secret-codes, google-little-language-lessons, claude-managed-agents, gemma4).",
       "affects": ["hooks", "component_choice", "motion", "captions", "proof_strategy"]
+    },
+    {
+      "date": "2026-04-21",
+      "source": "user_explicit",
+      "project": "chatgpt-images-2",
+      "note": "User explicitly requested image-dominant treatment (lots of images, less avatar, multi-image frames, scroll animations). Identified that cinematic-presenter's avatar-led defaults would fight this creative intent. User direction: 'do what you need to so that my initial request is respected — if that means a new style needs to be created.' Response: created `image-showcase` style profile that protects image-dominant reels from avatar-led defaults. Style suspends VIDEO-FIRST for gallery beats, relaxes avatar absence limits, mandates neutral white backgrounds for gallery sections.",
+      "affects": ["style_selection", "avatar_presence", "background_defaults", "video_first_rule", "gallery_layouts"]
     }
   ]
 }

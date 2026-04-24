@@ -45,7 +45,19 @@ export interface TimelineEntry {
   };
   zoom_moments?: ZoomMoment[];
   volume?: number;
-  display?: "responsive" | "center-full" | "guided-demo" | "hook-reveal" | "bg";
+  display?: "responsive" | "center-full" | "guided-demo" | "hook-reveal" | "bg" | "image-grid" | "scroll-image";
+  /** ImageGrid2x2 image list — required when display is "image-grid" */
+  images?: Array<{ src: string }>;
+  /** ScrollImage source aspect ratio (width/height) — required when display is "scroll-image" */
+  imageAspectRatio?: number;
+  /** ImageGrid2x2 per-cell spring stagger (frames). Default [0,5,10,15] */
+  staggerDelays?: number[];
+  /** ImageGrid2x2: cross-dissolve the grid in over 8 frames */
+  dissolveFromPrevious?: boolean;
+  /** ImageGrid2x2: cell index (0-3) to pan left→right during hold. -1 = none */
+  bookSpreadIndex?: number;
+  /** Ambient scale push for center-full images (no zoom_moment needed) */
+  ambient_zoom?: { fromScale: number; toScale: number; targetX: number; targetY: number };
   /** Config for display:"guided-demo" — browser frame + virtual camera pan + spotlight highlight */
   guided_demo?: {
     url?: string;

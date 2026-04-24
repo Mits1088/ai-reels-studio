@@ -37,7 +37,7 @@ VALID_STATUSES = {
     "blocked", "completed", "failed",
 }
 
-VALID_STYLES = {"cinematic-presenter", "editorial-authority", "proof-escalation-editorial"}
+VALID_STYLES = {"cinematic-presenter", "editorial-authority", "proof-escalation-editorial", "image-showcase"}
 
 # ── Gate IDs (from .claude/rules/gate-enforcement.md) ───────────────────────
 

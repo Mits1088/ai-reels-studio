@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Claude Code</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%; overflow: hidden;
+      background: #0D1117;
+      font-family: "JetBrains Mono", "Fira Code", "Courier New", monospace;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .terminal {
+      height: 100vh;
+      display: flex; flex-direction: column;
+      background: #0D1117;
+      color: #C9D1D9;
+    }
+
+    /* Title bar */
+    .titlebar {
+      display: flex; align-items: center;
+      background: #161B22;
+      border-bottom: 1px solid #30363D;
+      padding: 10px 16px;
+      gap: 8px;
+    }
+    .dots { display: flex; gap: 6px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot.red { background: #FF5F57; }
+    .dot.yellow { background: #FEBC2E; }
+    .dot.green { background: #28C840; }
+    .titlebar-title {
+      flex: 1; text-align: center;
+      font-size: 12px; color: #8B949E;
+    }
+
+    /* Content */
+    .content {
+      flex: 1; padding: 20px 24px;
+      display: flex; flex-direction: column;
+      gap: 2px;
+      font-size: 13px; line-height: 1.7;
+      overflow: hidden;
+    }
+
+    .line { display: flex; align-items: flex-start; gap: 0; }
+    .prompt { color: #7EE787; white-space: nowrap; flex-shrink: 0; }
+    .cmd { color: #C9D1D9; }
+    .output { color: #8B949E; padding-left: 0; }
+    .output.info { color: #58A6FF; }
+    .output.success { color: #7EE787; }
+    .output.warning { color: #F0883E; }
+    .output.accent { color: #D97757; font-weight: 500; }
+    .output.dim { color: #484F58; }
+
+    .section-gap { height: 8px; }
+    .divider {
+      border: none;
+      border-top: 1px solid #21262D;
+      margin: 6px 0;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 8px; height: 14px;
+      background: #7EE787;
+      vertical-align: middle;
+      animation: blink 1.2s step-end infinite;
+      margin-left: 1px;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* Claude Code header block */
+    .header-block {
+      background: #161B22;
+      border: 1px solid #30363D;
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 10px;
+    }
+    .header-logo {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 6px;
+    }
+    .logo-circle {
+      width: 20px; height: 20px;
+      background: #D97757;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: white;
+    }
+    .logo-text { font-size: 13px; font-weight: 700; color: #C9D1D9; }
+    .logo-version { font-size: 11px; color: #484F58; }
+    .header-meta { font-size: 11px; color: #8B949E; display: flex; gap: 16px; }
+    .meta-item { display: flex; gap: 4px; }
+    .meta-key { color: #484F58; }
+    .meta-val { color: #7EE787; }
+
+    /* Tool use block */
+    .tool-use {
+      background: #161B22;
+      border-left: 2px solid #D97757;
+      padding: 8px 12px;
+      margin: 2px 0;
+      border-radius: 0 4px 4px 0;
+    }
+    .tool-name { color: #D97757; font-size: 12px; font-weight: 700; }
+    .tool-path { color: #8B949E; font-size: 12px; }
+    .tool-result { color: #7EE787; font-size: 12px; }
+  </style>
+</head>
+<body>
+<div class="terminal">
+  <div class="titlebar">
+    <div class="dots">
+      <div class="dot red"></div>
+      <div class="dot yellow"></div>
+      <div class="dot green"></div>
+    </div>
+    <div class="titlebar-title">claude — ~/projects/webapp</div>
+  </div>
+
+  <div class="content">
+
+    <div class="line"><span class="prompt">~/projects/webapp  $ </span><span class="cmd">claude</span></div>
+    <div class="section-gap"></div>
+
+    <div class="header-block">
+      <div class="header-logo">
+        <div class="logo-circle">C</div>
+        <div class="logo-text">Claude Code</div>
+        <div class="logo-version">claude-opus-4-7</div>
+      </div>
+      <div class="header-meta">
+        <div class="meta-item"><span class="meta-key">cwd</span> <span class="meta-val">~/projects/webapp</span></div>
+        <div class="meta-item"><span class="meta-key">mode</span> <span class="meta-val">auto</span></div>
+        <div class="meta-item"><span class="meta-key">memory</span> <span class="meta-val">CLAUDE.md</span></div>
+      </div>
+    </div>
+
+    <div class="line"><span class="output info">✦ Reading project context from CLAUDE.md...</span></div>
+    <div class="line"><span class="output success">✓ Loaded: auth refactor in progress, 47 tests passing</span></div>
+    <div class="section-gap"></div>
+
+    <div class="line"><span class="output dim">────────────────────────────────────────────────</span></div>
+    <div class="section-gap"></div>
+
+    <div class="line"><span class="prompt">&gt; </span><span class="cmd">/ultrareview</span></div>
+    <div class="section-gap"></div>
+
+    <div class="line"><span class="output info">Analyzing codebase for design-level issues...</span></div>
+    <div class="section-gap"></div>
+
+    <div class="tool-use">
+      <div class="tool-name">list_files</div>
+      <div class="tool-path">src/auth/, src/api/, src/middleware/</div>
+    </div>
+
+    <div class="tool-use">
+      <div class="tool-name">read_file</div>
+      <div class="tool-path">src/auth/AuthService.ts  <span class="tool-result">312 lines</span></div>
+    </div>
+
+    <div class="tool-use">
+      <div class="tool-name">read_file</div>
+      <div class="tool-path">src/api/UserController.ts  <span class="tool-result">189 lines</span></div>
+    </div>
+
+    <div class="section-gap"></div>
+    <div class="line"><span class="output accent">⚠  design issue: AuthService tightly coupled to UserService</span></div>
+    <div class="line"><span class="output accent">⚠  design issue: missing error boundaries on token refresh</span></div>
+    <div class="line"><span class="output success">✓  2 design issues found. Generating fix plan...<span class="cursor"></span></span></div>
+
+  </div>
+</div>
+</body>
+</html>

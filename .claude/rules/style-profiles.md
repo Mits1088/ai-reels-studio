@@ -16,6 +16,7 @@ Every reel project selects a **style profile** that controls motion language, tr
 | Cinematic Presenter | `cinematic-presenter` | Smooth, premium, avatar-led | Feature demos, product deep-dives, tutorials |
 | Editorial Authority | `editorial-authority` | Fast, punchy, proof-led | Listicles, comparisons, news, claim-and-prove |
 | Proof Escalation Editorial | `proof-escalation-editorial` | Template-driven, proof-escalation arc | Product launches, capability showcases, feature announcements |
+| Image Showcase | `image-showcase` | Gallery-quality, image-led, minimal avatar | AI image model output, design tool showcases, visual capability demos — when the creator has 8+ output images and the images ARE the proof |
 
 ## How to Select
 
@@ -67,6 +68,20 @@ When active, `styles/editorial-authority.md` **overrides** baseline visual-style
 ### proof-escalation-editorial (template-driven mode)
 
 When active, this style uses **layout templates** instead of per-component selection. The template registry (`training/derived/template-registry.json`) is the source of truth for avatar mode, split ratio, background, and caption behavior. Shot-list emits `template_id` per beat; assembly maps it to `captionMode` and `splitRatio`; QA validates against `training/derived/rhythm-bounds.json`. See `styles/proof-escalation-editorial.md` and `.claude/rules/template-grammar.md`.
+
+### image-showcase (gallery-dominant override mode)
+
+When active, `styles/image-showcase.md` overrides:
+- Avatar defaults (from avatar-led → gallery-led, ≤25% presence)
+- Background defaults (from Aurora/GradientMesh → neutral white `#F8F8F8`)
+- VIDEO-FIRST hard rule (suspended for gallery beats — images ARE the product output)
+- proof-display role cap (suspended — 60-80% proof-display is expected and correct)
+- Avatar absence limits (relaxed to 20s preferred, 35s hard max)
+- Caption suppression targets (raised to 50-65%)
+
+**When to select this style:** The creator has 8+ distinct visual output images and the reel subject is an AI image model, design tool output, or visual capability showcase. If the images ARE the proof and the avatar is a guide not the anchor, this style protects that creative intent from being overridden by cinematic-presenter's avatar-led defaults.
+
+**Style selector signal:** If the user provides a folder of images as the primary content asset — not a screen recording, not a YouTube demo video — default to `image-showcase`.
 
 ### What all style profiles override (regardless of mode)
 

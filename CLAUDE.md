@@ -165,7 +165,7 @@ Full skill documentation: `.claude/skills/youtube/SKILL.md`
 
 ## Workflow (compact)
 
-Phases: 0 source-brief → 0b theme-factory → 1 reel-script → 2 ingest-voice → 2b script-reconcile → 3 beat-map → 3b caption-polish → 4 capture-demo → 4b shot-list (i/ii/iii) → 4c motion-intent → 4d asset-prep → 5 assemble-reel → **5b quick preview [→ feedback-capture]** → 6 qa-reel **[→ feedback-capture]** → 7 render **[→ feedback-capture + reel-learning]**
+Phases: 0 source-brief → 0b theme-factory → 1 reel-script → 2 ingest-voice → 2b script-reconcile → 3 beat-map → 3b caption-polish → 4 capture-demo → 4b shot-list (i/ii/iii) → 4c motion-intent → 4d asset-prep → 5 assemble-reel → **5b quick preview [→ feedback-capture]** → 6 qa-reel **[→ feedback-capture]** → 7 render **[→ feedback-capture + reel-learning]** → **7b publish-prep** (Instagram caption + posting checklist — mandatory after every render)
 
 11 approval gates. See `.claude/rules/gate-enforcement.md` for the full gate-to-skill mapping.
 
@@ -299,8 +299,10 @@ hook, setup, proof, demo, mechanism, trust, recap, CTA. Do not invent unnecessar
 
 ## Style Profiles
 
-Set `style` in `project.json`: `cinematic-presenter` (default), `editorial-authority`, or `proof-escalation-editorial`.
+Set `style` in `project.json`: `cinematic-presenter` (default), `editorial-authority`, `proof-escalation-editorial`, or `image-showcase`.
 See `.claude/rules/style-profiles.md` for the selector and `styles/` for full specs.
+
+**`image-showcase`** — use when the creator has 8+ output images and the images ARE the proof (AI image models, design tools, visual capability showcases). Overrides avatar-led defaults: ≤25% avatar presence, gallery-dominant layout, VIDEO-FIRST suspended for gallery beats, neutral white backgrounds.
 
 ## Renderer
 

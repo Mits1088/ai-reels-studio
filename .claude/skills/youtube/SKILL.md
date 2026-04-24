@@ -50,8 +50,8 @@ Before each sub-skill, load the reference guides it specifies. These live in `.c
 | Sub-skill | Load these references |
 |---|---|
 | demo-ingest | (none) |
-| script | `algorithm-guide.md`, `retention-guide.md`, `voice-profile.md` |
-| hook | `retention-guide.md`, `voice-profile.md` |
+| script | `algorithm-guide.md`, `retention-guide.md`, `voice-profile.md`, `jack-roberts-techniques.md`, `script-structure.md` |
+| hook | `retention-guide.md`, `voice-profile.md`, `jack-roberts-techniques.md` |
 | seo | `seo-playbook.md` |
 | thumbnail | `thumbnail-ctr.md` |
 | motion | (none — invokes `remotion-best-practices` skill instead) |
@@ -101,6 +101,12 @@ The YouTube workflow reads from the reel workflow but does not write back to it.
 **Minimum gate to start:** `brief_approved` must be in `gates_passed` in `project.json`.
 
 **The YouTube script and reel script are entirely different documents.** The reel is 20-60 seconds spoken naturally for ElevenLabs. The YouTube script is 8-20 minutes with production cues, pattern interrupts, and chapter timestamps.
+
+---
+
+## Standalone Script Creation (no pipeline required)
+
+If the user wants a YouTube script **without** an existing reel project (no `brief.md`, no `project.json`, no gates), use the `youtube-script-creator` skill instead. It is a standalone 5-step workflow that produces a complete shoot-ready package from just a topic or URL.
 
 ---
 

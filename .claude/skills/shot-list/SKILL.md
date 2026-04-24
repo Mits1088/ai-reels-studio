@@ -191,37 +191,78 @@ For every beat in `audio/beat-map.json`, assign:
 | Type | When to use |
 |---|---|
 | **avatar** | Direct address, setup, CTA — face is the focus |
-| **demo video** | Product walkthrough, recorded interaction, typing demo |
-| **demo image** | Static screenshot with zoom moments |
+| **demo video** | Product walkthrough, recorded interaction, typing demo — **always the first choice** |
+| **freeze frame** | PNG extracted from a video clip at a key moment; must be sandwiched between pre/post video segments; always has zoom_moments + annotation |
 | **b-roll** | Cinematic footage that illustrates a concept (not proof) |
-| **image montage** | Multiple related images shown in sequence (StackedImageReveal) |
 | **support** | Logo, chart, icon, or headline card |
 | **animated mock** | TypingInput, IconOrbit, SourceProofCard, or other animated component |
+| **demo image** | **Last resort only** — static screenshot with no source video; always add Ken Burns + zoom_moments |
+
+### VIDEO-FIRST RULE (mandatory — overrides all defaults)
+
+**Always use real video clips as the primary demo asset.** This is a hard rule from `creative-feedback.json`.
+
+**Visual asset priority order:**
+1. Real video clip from the product (center-full or split-screen)
+2. Freeze frame extracted from that same video clip (with zoom + annotation + continuation clip)
+3. B-roll video illustrating the concept
+4. Animated mock component (TypingText, FeatureMockup) when no video exists
+5. Static screenshot — **only when absolutely no video exists for this product state**
+
+**When assigning a screenshot, always ask first:** does a video clip exist from which this frame could be extracted? If yes, use the freeze frame pattern instead.
+
+### Freeze Frame Pattern (when to use and how to mark it)
+
+Use the freeze frame pattern when:
+- The narrator references a **specific UI element, number, or result** visible in a video
+- The beat needs a visual "pause for emphasis" within a video sequence
+- You want the viewer to read specific on-screen text before the video continues
+
+In the visual assignment table, mark freeze frames as a triplet — three consecutive rows for the same beat section:
+
+| Beat | Time | Narration | Visual Type | Asset | Notes |
+|---|---|---|---|---|---|
+| beat-04 | 11.0–13.2s | "it builds the complete design" | demo video | demo-04a.mp4 | pre-freeze: plays to reveal moment |
+| beat-04 | 13.2–14.8s | (freeze on design output) | freeze frame | freeze-04.png | extract at t=2.2s of clip; zoom + annotation on design panel |
+| beat-04 | 14.8–16.8s | "on your brand, in seconds" | demo video | demo-04b.mp4 | post-freeze: continues from after freeze point |
+
+**Asset prep note:** Freeze frame PNGs are extracted during Phase 4d:
+```bash
+ffmpeg -ss {clip_timestamp} -i demo-clip.mp4 -frames:v 1 -q:v 2 freeze-{beat_id}.png
+```
 
 ### Assignment rules
 
-- **Demos come first.** Assign demo coverage to proof, mechanism, and trust beats before anything else.
-- **B-roll fills gaps.** Assign b-roll to concept, bridge, and texture beats — never to proof beats that need specific evidence.
+- **Video comes first, always.** Assign a video clip to every proof, mechanism, and demo beat before considering anything else.
+- **Freeze frames are not standalone.** A freeze frame must always have a pre-freeze clip before it and a post-freeze clip after it. Never assign a lone PNG without the surrounding video context.
+- **B-roll fills concept gaps.** Assign b-roll to bridge and texture beats — never to proof beats that need specific evidence.
 - **Avatar is the default for direct address.** If the narrator is speaking TO the viewer with no visual claim, use avatar.
 - **No beat may be empty.** Every beat must have a visual assignment.
-- **Match b-roll by editorial intent**, not visual similarity. A "trust beat" narration matches a "proof_risk: low" scene, not a pretty landscape.
+- **Match b-roll by editorial intent**, not visual similarity.
 
-### Screenshot variety rules (mandatory)
+### Motion requirement for every assigned visual (mandatory)
 
-- No single static screenshot may hold on screen for more than **2 seconds** without a zoom change or cut to a different image.
-- Any proof section longer than **2.5 seconds** must use **multiple different screenshots** with hard cuts between them.
-- Extract **at least 2-3 different frames** showing different states, angles, or features of the product.
-- Each screenshot in a sequence must show a **visibly different** part of the product.
+Every visual assignment — video, freeze frame, or screenshot — must specify its motion treatment at assignment time, not deferred to Phase 4c:
 
-### Screenshot count minimums
-
-| Reel duration | Minimum unique screenshots |
+| Visual type | Required motion |
 |---|---|
-| 25-35s | 6 |
-| 35-45s | 8 |
-| 45-55s | 10 |
+| Demo video | Clip's own motion (cursor/UI animation). Add `zoom_moments` only if narrator names a specific target. |
+| Freeze frame | `zoom_moments` targeting the highlighted element (mandatory) + AnnotationCircle overlay |
+| B-roll video | Clip's own motion. Ken Burns only on nearly-static clips. |
+| Screenshot (last resort) | Ken Burns (1.0 → 1.02–1.04) + `zoom_moments` required — no static frame allowed |
+| Support/logo | Entry animation (bounce, pop-in) counts as the motion element |
 
-After completing the table, count total unique screenshots. If below minimum, go back and extract more.
+**No visual may be assigned without specifying how it moves.**
+
+### Screenshot count minimums (now freeze frame counts)
+
+Screenshots are now primarily freeze frames. Freeze frame + surrounding clip = 1 unit. Count these, not standalone PNGs.
+
+| Reel duration | Minimum video+freeze units |
+|---|---|
+| 25-35s | 4 video clips minimum |
+| 35-45s | 6 video clips minimum |
+| 45-55s | 8 video clips minimum |
 
 ### Style-specific tagging
 

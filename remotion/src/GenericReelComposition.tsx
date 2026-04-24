@@ -3,7 +3,7 @@ import {
   AbsoluteFill, Audio, Sequence, staticFile, Img,
   useCurrentFrame, interpolate, OffthreadVideo,
 } from "remotion";
-import type { Timeline, TimelineEntry, OverlayEntry, TransitionPreset } from "./types";
+import type { Timeline, TimelineEntry, OverlayEntry, TransitionPreset, ZoomMoment } from "./types";
 import { toFrame, CONTENT_HEIGHT_PCT } from "./utils";
 
 // Components used by the generic renderer
@@ -28,6 +28,8 @@ import { ToastCard }         from "./components/effects/clippkit/ToastCard";
 import { Caption }           from "./components/Caption";
 import { AvatarVideo }       from "./components/media/AvatarVideo";
 import { FramedImage }       from "./components/media/FramedImage";
+import { ImageGrid2x2 }      from "./components/media/ImageGrid2x2";
+import { ScrollImage }       from "./components/media/ScrollImage";
 import { GuidedDemo }        from "./components/effects/GuidedDemo";
 import { AnnotationCircle }  from "./components/effects/AnnotationCircle";
 import { TransitionWrapper } from "./components/transitions/TransitionWrapper";
@@ -65,7 +67,7 @@ const splitTopStyle: React.CSSProperties = {
   height: SPLIT_H, overflow: "hidden", zIndex: 10,
 };
 
-/** Compute center-full ranges from demo + broll entries with display: "center-full" */
+/** Compute center-full ranges from demo + broll entries that hide the avatar */
 function computeCenterFullRanges(timeline: Timeline): { start: number; end: number }[] {
   const ranges: { start: number; end: number }[] = [];
   const entries = [
@@ -73,7 +75,12 @@ function computeCenterFullRanges(timeline: Timeline): { start: number; end: numb
     ...(timeline.lanes.broll || []),
   ];
   for (const e of entries) {
-    if (e.display === "center-full" || e.display === "guided-demo") {
+    if (
+      e.display === "center-full" ||
+      e.display === "guided-demo" ||
+      e.display === "image-grid" ||
+      e.display === "scroll-image"
+    ) {
       ranges.push({ start: e.start, end: e.end });
     }
   }
@@ -102,7 +109,7 @@ function getBackgroundAtTime(avatarEntries: TimelineEntry[], time: number): stri
       return e.layout === "full-screen" ? "#1A1A2E" : "#FFFFFF";
     }
   }
-  return "#F5F5F5"; // no avatar = center-full content
+  return "#F8F8F8"; // no avatar = gallery/center-full content
 }
 
 /** Build background segments from avatar lane transitions */
@@ -147,6 +154,68 @@ function isVideo(asset: string): boolean {
   return /\.(mp4|webm|mov)$/i.test(asset);
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────
+
+/** Resolve a local path via staticFile, or pass CDN https:// URLs through unchanged */
+const resolveAudioSrc = (asset: string): string =>
+  asset.startsWith("https://") ? asset : staticFile(asset);
+
+// ── Gallery helper components (defined outside main component for hook validity) ──
+
+/** Center-full image with slow ambient scale push toward a focal point */
+const AmbientZoomImage: React.FC<{
+  src: string;
+  durationInFrames: number;
+  fromScale: number;
+  toScale: number;
+  targetX: number;
+  targetY: number;
+}> = ({ src, durationInFrames, fromScale, toScale, targetX, targetY }) => {
+  const frame = useCurrentFrame();
+  const scaleFactor = interpolate(
+    frame,
+    [0, Math.max(1, durationInFrames)],
+    [fromScale, toScale],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+  );
+  return (
+    <AbsoluteFill style={{ overflow: "hidden" }}>
+      <Img
+        src={staticFile(src)}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          objectPosition: "center",
+          transform: `scale(${scaleFactor})`,
+          transformOrigin: `${targetX}% ${targetY}%`,
+        }}
+      />
+    </AbsoluteFill>
+  );
+};
+
+/** Center-full image with spring-based punch-in zoom at specified moments */
+const ZoomedCenterFullImage: React.FC<{
+  src: string;
+  zoomMoments: ZoomMoment[];
+}> = ({ src, zoomMoments }) => (
+  <AbsoluteFill>
+    <PunchInZoom moments={zoomMoments}>
+      <Img
+        src={staticFile(src)}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          objectPosition: "center",
+          display: "block",
+        }}
+      />
+    </PunchInZoom>
+  </AbsoluteFill>
+);
+
 // ── Main Composition ──────────────────────────────────────────────────────
 
 export const GenericReelComposition: React.FC<{ timeline: Timeline }> = ({ timeline }) => {
@@ -182,7 +251,7 @@ export const GenericReelComposition: React.FC<{ timeline: Timeline }> = ({ timel
           from={toFrame(entry.start)}
           durationInFrames={Math.max(1, toFrame(entry.end - entry.start))}
         >
-          <Audio src={staticFile(entry.asset!)} volume={entry.volume ?? 0.25} />
+          <Audio src={resolveAudioSrc(entry.asset!)} volume={entry.volume ?? 0.25} />
         </Sequence>
       ))}
 
@@ -192,37 +261,117 @@ export const GenericReelComposition: React.FC<{ timeline: Timeline }> = ({ timel
           from={toFrame(entry.start)}
           durationInFrames={Math.max(1, toFrame(entry.end - entry.start))}
         >
-          <Audio src={staticFile(entry.asset!)} volume={entry.volume ?? 0.15} />
+          <Audio src={resolveAudioSrc(entry.asset!)} volume={entry.volume ?? 0.15} />
         </Sequence>
       ))}
 
-      {/* ════════ BROLL (center-full videos) ════════ */}
+      {/* ════════ BROLL (gallery: center-full, image-grid, scroll-image) ════════ */}
       {(timeline.lanes.broll || []).map((entry, i) => {
-        if (entry.display !== "center-full" || !entry.asset) return null;
-        return (
-          <Sequence
-            key={`broll-${i}`}
-            from={toFrame(entry.start)}
-            durationInFrames={Math.max(1, toFrame(entry.end - entry.start))}
-            premountFor={10}
-          >
-            <AbsoluteFill style={{ zIndex: 12, background: "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              {isVideo(entry.asset) ? (
-                <OffthreadVideo
-                  src={staticFile(entry.asset)}
-                  muted
-                  playbackRate={entry.playbackRate ?? 1}
-                  style={{ width: "100%", height: "100%", objectFit: "contain" }}
+        const dur = Math.max(1, toFrame(entry.end - entry.start));
+
+        // ── Image grid (ImageGrid2x2) ─────────────────────────────────────
+        if (entry.display === "image-grid" && entry.images) {
+          return (
+            <Sequence
+              key={`broll-${i}`}
+              from={toFrame(entry.start)}
+              durationInFrames={dur}
+              premountFor={10}
+            >
+              <AbsoluteFill style={{ zIndex: 12 }}>
+                <ImageGrid2x2
+                  images={entry.images}
+                  durationInFrames={dur}
+                  staggerDelays={entry.staggerDelays}
+                  dissolveFromPrevious={entry.dissolveFromPrevious}
+                  bookSpreadIndex={entry.bookSpreadIndex}
                 />
-              ) : (
-                <Img
-                  src={staticFile(entry.asset)}
-                  style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center" }}
+              </AbsoluteFill>
+            </Sequence>
+          );
+        }
+
+        // ── Scroll image (vertical reveal for tall portraits) ─────────────
+        if (entry.display === "scroll-image" && entry.asset && entry.imageAspectRatio) {
+          return (
+            <Sequence
+              key={`broll-${i}`}
+              from={toFrame(entry.start)}
+              durationInFrames={dur}
+              premountFor={10}
+            >
+              <AbsoluteFill style={{ zIndex: 12 }}>
+                <ScrollImage
+                  src={entry.asset}
+                  durationInFrames={dur}
+                  imageAspectRatio={entry.imageAspectRatio}
                 />
-              )}
-            </AbsoluteFill>
-          </Sequence>
-        );
+              </AbsoluteFill>
+            </Sequence>
+          );
+        }
+
+        // ── Center-full: video or image (with optional ambient/zoom) ──────
+        if (entry.display === "center-full" && entry.asset) {
+          let inner: React.ReactNode;
+
+          if (isVideo(entry.asset)) {
+            inner = (
+              <OffthreadVideo
+                src={staticFile(entry.asset)}
+                muted
+                playbackRate={entry.playbackRate ?? 1}
+                style={{ width: "100%", height: "100%", objectFit: "contain" }}
+              />
+            );
+          } else if (entry.ambient_zoom) {
+            inner = (
+              <AmbientZoomImage
+                src={entry.asset}
+                durationInFrames={dur}
+                fromScale={entry.ambient_zoom.fromScale}
+                toScale={entry.ambient_zoom.toScale}
+                targetX={entry.ambient_zoom.targetX}
+                targetY={entry.ambient_zoom.targetY}
+              />
+            );
+          } else if (entry.zoom_moments && entry.zoom_moments.length > 0) {
+            inner = (
+              <ZoomedCenterFullImage
+                src={entry.asset}
+                zoomMoments={entry.zoom_moments}
+              />
+            );
+          } else {
+            inner = (
+              <Img
+                src={staticFile(entry.asset)}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  objectPosition: "center",
+                  display: "block",
+                }}
+              />
+            );
+          }
+
+          return (
+            <Sequence
+              key={`broll-${i}`}
+              from={toFrame(entry.start)}
+              durationInFrames={dur}
+              premountFor={10}
+            >
+              <AbsoluteFill style={{ zIndex: 12, background: "transparent" }}>
+                {inner}
+              </AbsoluteFill>
+            </Sequence>
+          );
+        }
+
+        return null;
       })}
 
       {/* ════════ DEMO IMAGES ════════ */}
@@ -277,10 +426,14 @@ export const GenericReelComposition: React.FC<{ timeline: Timeline }> = ({ timel
                     style={{ width: "100%", height: "100%", objectFit: "contain" }}
                   />
                 ) : (
-                  <FramedImage
-                    src={entry.asset}
-                    splitScreen={false}
-                    zoomMoments={entry.zoom_moments}
+                  <Img
+                    src={staticFile(entry.asset)}
+                    style={{
+                      maxWidth: "100%",
+                      maxHeight: "100%",
+                      objectFit: "contain",
+                      display: "block",
+                    }}
                   />
                 )}
               </AbsoluteFill>

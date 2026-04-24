@@ -73,7 +73,14 @@ remotion/final-*.png
 remotion/hl-*.png
 remotion/v[0-9]-*.png
 remotion/v[0-9][0-9]-*.png
+remotion/*.png
 out/
+
+# ─────────────────────────────────────────────────────────────────────
+# Working reel project folders at repo root (source video, previews)
+# ─────────────────────────────────────────────────────────────────────
+Performing videos/
+claude-design/
 
 # ─────────────────────────────────────────────────────────────────────
 # Nested git repository (vendored Anthropic skills)

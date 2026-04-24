@@ -49,7 +49,7 @@
 
     "style": {
       "type": "string",
-      "enum": ["cinematic-presenter", "editorial-authority", "proof-escalation-editorial"],
+      "enum": ["cinematic-presenter", "editorial-authority", "proof-escalation-editorial", "image-showcase"],
       "default": "cinematic-presenter",
       "description": "Visual style profile (reel only)."
     },
