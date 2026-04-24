@@ -7,17 +7,10 @@
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/reinject-after-compact.sh\""
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
+          },
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/validate-project-json.sh\""
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/portfolio-sweep.sh\""
           }
         ]
       }
@@ -31,6 +24,39 @@
             "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/protect-generated-artifacts.sh\""
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/prevent-unsafe-render.sh\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/validate-project-json.sh\""
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/brain-status.sh\""
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/qa-analytics-ingest.sh\""
+          }
+        ]
       }
     ]
   },
@@ -42,6 +68,8 @@
       "Bash(python -m lib.components *)",
       "Bash(python -m lib.migrate *)",
       "Bash(python -m lib.qa.cli *)",
+      "Bash(python -m lib.brain *)",
+      "Bash(python -m lib.analytics *)",
       "Bash(python lib/test_contracts.py *)",
       "Bash(npx tsc --noEmit *)"
     ]
