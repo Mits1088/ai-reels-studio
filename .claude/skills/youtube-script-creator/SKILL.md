@@ -45,9 +45,9 @@ Before writing anything, confirm with the user:
 
 - **Topic and angle:** What tool or concept is this about? What's the unique angle versus other videos on this topic?
 - **Primary demo:** What will be shown on screen? Walk through the user journey step by step.
-- **Practical examples:** What real business scenarios will the video use? (Prefer examples that match Mits's actual client base: physiotherapy clinics, medical spas, wellness businesses, local service businesses.)
+- **Practical examples:** What real business scenarios will the video use? Prefer examples that match Mits's audience: small business owners, agency owners, consultants, and non-technical entrepreneurs who want to save time, save money, and become more efficient using AI. Generic business scenarios work best (email follow-up, lead reactivation, weekly research, calendar prep, client call summaries). Avoid physio clinic, medical spa, or wellness business defaults — that framing is outdated.
 - **Target duration:** Usually 10 to 12 minutes.
-- **Credibility anchor:** Should this video reference Mits's GHL agency background? Use sparingly, only when directly relevant.
+- **Credibility anchor:** Mits's intro should frame him as running an AI automation agency helping businesses save time, money, and efficiency using AI — and helping non-technical business owners (like himself) actually use it. Always include a book-a-call CTA (https://calendly.com/mitheeljagani1/30min) naturally in the intro section and in the outro. Do not position him as a GHL wellness agency owner — that framing is outdated.
 
 If any of these are unclear, ask before drafting.
 
@@ -80,15 +80,41 @@ Before delivering, check:
 
 ## Delivery format
 
-Always deliver in this exact order:
+Always write output to three separate markdown files inside `projects/<slug>/youtube/`. Create the folder if it does not exist.
 
+### File 1: `script.md`
+
+Contains in this order:
 1. **Video meta** (title, duration, primary claim, CTA)
 2. **Pre-production checklist** (everything needed before hitting record)
 3. **Full script** (chapter by chapter with narration and on-screen actions)
-4. **Copy-paste assets** (all prompts, files, configs, sample data)
-5. **URLs and links** (every link referenced in the video)
-6. **Video description** (pre-written, with chapter timestamps)
-7. **Claim check** (verified facts and editorial framing flagged)
+4. **Claim check** (verified facts and editorial framing flagged)
+
+### File 2: `prompts.md`
+
+Contains all copy-paste assets needed during the shoot:
+- Every prompt typed on screen, written out verbatim in a labelled copy-paste block
+- Sample data files (CSV, plain text, Markdown) used in demos
+- Skill instruction templates shown on screen
+- Any YAML, JSON, or config files referenced in the video
+
+### File 3: `description.md`
+
+Contains the ready-to-paste YouTube description. Always begins with these two lines, followed by exactly two blank lines, before any other description content:
+
+```
+Book a free AI Automation call with me: https://calendly.com/mitheeljagani1/30min
+
+Get GoHighLevel (the platform I use to automate business workflows): https://www.gohighlevel.com/?fp_ref=quantum-lead-gen27
+```
+
+Then continues with:
+5. **URLs and links** (every link referenced in the video, in a "RESOURCES MENTIONED" section)
+6. **Full video description** (hook sentence, paragraphs, chapter timestamps, free resources section, subscribe CTA)
+
+### After writing all three files
+
+Confirm the paths to the user so they know where to find the output.
 
 ---
 

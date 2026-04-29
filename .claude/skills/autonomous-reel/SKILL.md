@@ -11,13 +11,30 @@ description: Continue a reel project autonomously until the next human approval 
 
 ## Decision Tree
 
+### 0. project_type check (before anything else)
+
+Read `project_type` from the diagnosis JSON (`project_type` field) or directly from `project.json`.
+
+If `project_type` is not `"reel"`:
+→ Stop immediately. Do not diagnose, repair, or advance.
+→ Report:
+```
+⛔ Not a reel project
+project_type: <value>
+This project is not eligible for autonomous-reel.
+For YouTube projects: use the /youtube skill suite.
+For unknown project_type: set project_type in project.json first.
+```
+
+---
+
 ### 1. Diagnose (always first)
 
 ```bash
 PYTHONPATH=. python -m lib.brain diagnose projects/<slug> --json
 ```
 
-Hold: `healthy`, `validation_errors`, `autonomy.*`, `gates.*`, `qa.*`, `artifacts.staleness_results`.
+Hold: `healthy`, `validation_errors`, `autonomy.*`, `gates.*`, `qa.*`, `artifacts.staleness_results`, `project_type`.
 
 ---
 
@@ -27,7 +44,13 @@ Hold: `healthy`, `validation_errors`, `autonomy.*`, `gates.*`, `qa.*`, `artifact
 → Report and stop. Ask Mits for the correct slug.
 
 **`validation_errors` non-empty**
-→ Run `PYTHONPATH=. python -m lib.brain repair projects/<slug>`, present the plan, stop.
+→ Run `PYTHONPATH=. python -m lib.brain repair projects/<slug>`.
+→ If the repair plan contains a **code-actor** migration step (`lib.migrate`), run it immediately — it is code-safe and requires no human judgment:
+```bash
+PYTHONPATH=. python -m lib.migrate projects/<slug>
+```
+Re-diagnose after migration. If validation errors persist (non-migrate errors remain), present the repair plan and stop.
+→ If NO code-actor steps: present the plan and stop.
 
 **`autonomy.human_required: true`**
 → Stop. Present:
@@ -103,6 +126,23 @@ cd remotion && npx remotion render ReelComposition --output out/reel.mp4
 After render: suggest `publish-prep` and `feedback-capture`.
 
 **Hard rule:** `qa_passed` must be in `gates.passed` (the array) — not just `qa.verdict`. Check both.
+
+---
+
+## Critic Advisory
+
+When `critic.available: true` AND `critic.status` is `critic_warnings` or `critic_blocked`, surface findings **before** advancing — even in advisory mode:
+
+```
+ℹ  Critic findings (advisory — not blocking):
+Status: <critic.status>
+Findings: <critic.findings_count> (<critic.highest_severity> highest)
+Top: <top_findings[0..2]>
+```
+
+Critic findings are **never blocking** unless `--critic-hard-mode` was explicitly passed to the diagnose command. Do not stop for advisory findings — surface them and continue if the gate path is otherwise clear.
+
+If `diagnosis.critic_hard_blocked: true` (requires explicit opt-in to hard mode), treat as a blocker: run repair, present plan, stop.
 
 ---
 

@@ -12,7 +12,7 @@ import type { TransitionPreset } from "../../types";
 
 function exitOpacityCalc(frame: number, dur: number, preset: TransitionPreset): number {
   // hard-cut or exitDur 0 — no fade, just instant (handled by Sequence end)
-  if (preset.exit === "hard-cut" || preset.exitDur <= 0) return 1;
+  if (preset.exit === "hard-cut" || !preset.exitDur || preset.exitDur <= 0) return 1;
   const fadeStart = Math.max(0, dur - 1 - preset.exitDur);
   const fadeEnd = dur - 1;
   if (fadeStart >= fadeEnd) return 1;
@@ -204,7 +204,8 @@ export const TransitionWrapper: React.FC<{
       break;
     }
     default: {
-      enterOpacity = interpolate(frame, [0, preset.enterDur], [0, 1], {
+      const dur = preset.enterDur ?? 5;
+      enterOpacity = interpolate(frame, [0, dur], [0, 1], {
         extrapolateRight: "clamp",
       });
       break;

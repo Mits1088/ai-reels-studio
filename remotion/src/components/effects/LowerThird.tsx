@@ -1,5 +1,5 @@
 import React from "react";
-import { useCurrentFrame, useVideoConfig, interpolate, spring, Easing } from "remotion";
+import { useCurrentFrame, useVideoConfig, interpolate, spring, Easing, Img, staticFile } from "remotion";
 
 /**
  * LowerThird — Animated name/title card that slides in from the left.
@@ -12,12 +12,18 @@ export const LowerThird: React.FC<{
   accentColor?: string;
   durationInFrames: number;
   position?: "bottom-left" | "bottom-center" | "top-left";
+  titleFontSize?: number;
+  subtitleFontSize?: number;
+  logoSrc?: string;
 }> = ({
   title,
   subtitle,
   accentColor = "#00E5FF",
   durationInFrames,
   position = "bottom-left",
+  titleFontSize = 30,
+  subtitleFontSize = 20,
+  logoSrc,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -71,28 +77,43 @@ export const LowerThird: React.FC<{
         border: "1px solid rgba(255, 255, 255, 0.08)",
         transform: `translateX(${interpolate(cardEnter, [0, 1], [-60, 0])}px)`,
         opacity: cardEnter,
+        display: "flex",
+        alignItems: "center",
+        gap: logoSrc ? 16 : 0,
       }}>
-        <div style={{
-          fontSize: 30,
-          fontWeight: 700,
-          color: "#FFFFFF",
-          fontFamily: "'Inter', 'Segoe UI', sans-serif",
-          letterSpacing: "-0.01em",
-        }}>
-          {title}
-        </div>
-        {subtitle && (
-          <div style={{
-            fontSize: 20,
-            fontWeight: 400,
-            color: "rgba(255, 255, 255, 0.55)",
-            marginTop: 2,
-            fontFamily: "'Inter', 'Segoe UI', sans-serif",
-            opacity: subtitleEnter,
-          }}>
-            {subtitle}
-          </div>
+        {logoSrc && (
+          <Img
+            src={staticFile(logoSrc)}
+            style={{
+              width: titleFontSize * 1.4,
+              height: titleFontSize * 1.4,
+              flexShrink: 0,
+            }}
+          />
         )}
+        <div>
+          <div style={{
+            fontSize: titleFontSize,
+            fontWeight: 700,
+            color: "#FFFFFF",
+            fontFamily: "'Inter', 'Segoe UI', sans-serif",
+            letterSpacing: "-0.01em",
+          }}>
+            {title}
+          </div>
+          {subtitle && (
+            <div style={{
+              fontSize: subtitleFontSize,
+              fontWeight: 400,
+              color: "rgba(255, 255, 255, 0.55)",
+              marginTop: 2,
+              fontFamily: "'Inter', 'Segoe UI', sans-serif",
+              opacity: subtitleEnter,
+            }}>
+              {subtitle}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

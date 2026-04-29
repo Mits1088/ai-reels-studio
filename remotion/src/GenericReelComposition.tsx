@@ -1,7 +1,7 @@
 import React from "react";
 import {
   AbsoluteFill, Audio, Sequence, staticFile, Img,
-  useCurrentFrame, interpolate, OffthreadVideo,
+  useCurrentFrame, interpolate, OffthreadVideo, spring, useVideoConfig,
 } from "remotion";
 import type { Timeline, TimelineEntry, OverlayEntry, TransitionPreset, ZoomMoment } from "./types";
 import { toFrame, CONTENT_HEIGHT_PCT } from "./utils";
@@ -32,6 +32,29 @@ import { ImageGrid2x2 }      from "./components/media/ImageGrid2x2";
 import { ScrollImage }       from "./components/media/ScrollImage";
 import { GuidedDemo }        from "./components/effects/GuidedDemo";
 import { AnnotationCircle }  from "./components/effects/AnnotationCircle";
+import { CharKeyword }       from "./components/effects/CharKeyword";
+import { TerminalWindow }    from "./components/effects/TerminalWindow";
+import { StatCounter }       from "./components/effects/StatCounter";
+import { ComparisonSlider }  from "./components/effects/ComparisonSlider";
+import { TextHighlight }     from "./components/effects/TextHighlight";
+import { ChartBar }          from "./components/effects/ChartBar";
+import { ProgressSteps }     from "./components/effects/ProgressSteps";
+import { HighlightBox }      from "./components/effects/HighlightBox";
+import { SourceProofCard }   from "./components/effects/SourceProofCard";
+import { LowerThird }        from "./components/effects/LowerThird";
+import { PunchText }         from "./components/effects/PunchText";
+import { KineticQuote }      from "./components/effects/KineticQuote";
+import { ProgressRing }      from "./components/effects/ProgressRing";
+import { TypingInput }       from "./components/effects/TypingInput";
+import { TypewriterCode }    from "./components/effects/TypewriterCode";
+import { SceneBreak }        from "./components/effects/SceneBreak";
+import { LottieOverlay }     from "./components/effects/LottieOverlay";
+import { ChapterDivider }    from "./components/effects/ChapterDivider";
+import { ComparisonGrid }    from "./components/effects/ComparisonGrid";
+import { ScrollingIconGrid } from "./components/effects/ScrollingIconGrid";
+import { CursorClick }       from "./components/effects/CursorClick";
+import { LightLeakOverlay }  from "./components/effects/LightLeakOverlay";
+import { AppWindow }         from "./components/media/AppWindow";
 import { TransitionWrapper } from "./components/transitions/TransitionWrapper";
 
 // ── Overlay component registry ────────────────────────────────────────────
@@ -57,6 +80,50 @@ const OVERLAY_REGISTRY: Record<string, React.FC<any>> = {
   ToastCard,
   // annotation
   AnnotationCircle,
+  // char-level explosive reveals
+  CharKeyword,
+  // terminal window with macOS chrome + typing animation
+  TerminalWindow,
+  // animated number count-up
+  StatCounter,
+  // before/after comparison slider
+  ComparisonSlider,
+  // text with highlight sweep
+  TextHighlight,
+  // data-driven bar chart
+  ChartBar,
+  // numbered steps with connecting line
+  ProgressSteps,
+  // rectangular UI highlight box (alternative to AnnotationCircle for rectangular targets)
+  HighlightBox,
+  // styled social-proof tweet/post card
+  SourceProofCard,
+  // broadcast-style lower-third name badge
+  LowerThird,
+  // slam-in with echo ripple (single explosive word)
+  PunchText,
+  // word-by-word kinetic quote reveal
+  KineticQuote,
+  // countdown / progress ring (@remotion/shapes)
+  ProgressRing,
+  // product-accurate input field typing animation
+  TypingInput,
+  // single-line terminal code typing
+  TypewriterCode,
+  // GPU-safe whip/iris transition flash
+  SceneBreak,
+  // animated brand logo from Lottie JSON
+  LottieOverlay,
+  // tool introduction chapter divider (logo + title full-frame)
+  ChapterDivider,
+  // side-by-side screenshot comparison with VS divider
+  ComparisonGrid,
+  // rotated scrolling icon grid (hook background)
+  ScrollingIconGrid,
+  // cursor click-point ripple animation
+  CursorClick,
+  // WebGL light flare transition (@remotion/light-leaks)
+  LightLeakOverlay,
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────
@@ -156,9 +223,26 @@ function isVideo(asset: string): boolean {
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
-/** Resolve a local path via staticFile, or pass CDN https:// URLs through unchanged */
-const resolveAudioSrc = (asset: string): string =>
-  asset.startsWith("https://") ? asset : staticFile(asset);
+/** @sfx/ shorthand → @remotion/sfx CDN URLs */
+const SFX_MAP: Record<string, string> = {
+  "@sfx/whoosh":        "https://remotion.media/whoosh.wav",
+  "@sfx/whip":          "https://remotion.media/whip.wav",
+  "@sfx/pageTurn":      "https://remotion.media/page-turn.wav",
+  "@sfx/uiSwitch":      "https://remotion.media/switch.wav",
+  "@sfx/mouseClick":    "https://remotion.media/mouse-click.wav",
+  "@sfx/shutterModern": "https://remotion.media/shutter-modern.wav",
+  "@sfx/shutterOld":    "https://remotion.media/shutter-old.wav",
+  "@sfx/ding":          "https://remotion.media/ding.wav",
+  "@sfx/bruh":          "https://remotion.media/bruh.wav",
+  "@sfx/vineBoom":      "https://remotion.media/vine-boom.wav",
+};
+
+/** Resolve @sfx/ shorthand, https:// CDN URLs, or local staticFile paths */
+const resolveAudioSrc = (asset: string): string => {
+  if (SFX_MAP[asset]) return SFX_MAP[asset];
+  if (asset.startsWith("https://")) return asset;
+  return staticFile(asset);
+};
 
 // ── Gallery helper components (defined outside main component for hook validity) ──
 
@@ -215,6 +299,28 @@ const ZoomedCenterFullImage: React.FC<{
     </PunchInZoom>
   </AbsoluteFill>
 );
+
+/** Spring scale-settle + fade-in entry wrapper for center-full demo/broll sections */
+const CenterFullEntry: React.FC<{
+  durationInFrames: number;
+  children: React.ReactNode;
+}> = ({ children }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const sv = spring({ frame, fps, config: { damping: 18, stiffness: 160, mass: 0.9 } });
+  const entryScale = interpolate(sv, [0, 1], [1.05, 1.0]);
+  const fadeIn = interpolate(frame, [0, 5], [0, 1], { extrapolateRight: "clamp" });
+  return (
+    <div style={{
+      width: "100%", height: "100%",
+      transform: `scale(${entryScale})`,
+      opacity: fadeIn,
+      overflow: "hidden",
+    }}>
+      {children}
+    </div>
+  );
+};
 
 // ── Main Composition ──────────────────────────────────────────────────────
 
@@ -321,7 +427,12 @@ export const GenericReelComposition: React.FC<{ timeline: Timeline }> = ({ timel
                 src={staticFile(entry.asset)}
                 muted
                 playbackRate={entry.playbackRate ?? 1}
-                style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                style={{
+                  width: "100%", height: "100%",
+                  objectFit: "contain",
+                  transform: "scale(1.5)",
+                  transformOrigin: "center center",
+                }}
               />
             );
           } else if (entry.ambient_zoom) {
@@ -417,26 +528,69 @@ export const GenericReelComposition: React.FC<{ timeline: Timeline }> = ({ timel
               durationInFrames={dur}
               premountFor={10}
             >
-              <AbsoluteFill style={{ zIndex: 12, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {isVideo(entry.asset) ? (
-                  <OffthreadVideo
-                    src={staticFile(entry.asset)}
-                    muted
-                    playbackRate={entry.playbackRate ?? 1}
-                    style={{ width: "100%", height: "100%", objectFit: "contain" }}
-                  />
-                ) : (
-                  <Img
-                    src={staticFile(entry.asset)}
-                    style={{
-                      maxWidth: "100%",
-                      maxHeight: "100%",
-                      objectFit: "contain",
-                      display: "block",
-                    }}
-                  />
-                )}
+              <AbsoluteFill style={{ zIndex: 12 }}>
+                <CenterFullEntry durationInFrames={dur}>
+                  {isVideo(entry.asset) ? (
+                    <OffthreadVideo
+                      src={staticFile(entry.asset)}
+                      muted
+                      playbackRate={entry.playbackRate ?? 1}
+                      style={{
+                        width: "100%", height: "100%",
+                        objectFit: "contain",
+                        transform: "scale(1.5)",
+                        transformOrigin: "center center",
+                      }}
+                    />
+                  ) : (
+                    <Img
+                      src={staticFile(entry.asset)}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        display: "block",
+                      }}
+                    />
+                  )}
+                </CenterFullEntry>
               </AbsoluteFill>
+            </Sequence>
+          );
+        }
+
+        // ── App-window: asset wrapped in browser/app chrome ────────────
+        if (entry.display === "app-window" && entry.asset) {
+          const windowContent = isVideo(entry.asset) ? (
+            <OffthreadVideo
+              src={staticFile(entry.asset)}
+              muted
+              playbackRate={entry.playbackRate ?? 1}
+              style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }}
+            />
+          ) : (
+            <FramedImage src={entry.asset} zoomMoments={entry.zoom_moments} />
+          );
+          return (
+            <Sequence
+              key={`demo-aw-${i}`}
+              from={toFrame(entry.start)}
+              durationInFrames={dur}
+              premountFor={5}
+            >
+              <div style={splitTopStyle}>
+                <div style={{ width: "100%", height: "100%", padding: "14px 18px" }}>
+                  <AppWindow
+                    platform={entry.appWindow?.platform}
+                    theme={entry.appWindow?.theme}
+                    url={entry.appWindow?.url}
+                    title={entry.appWindow?.title}
+                    showUrlBar={entry.appWindow?.showUrlBar}
+                  >
+                    {windowContent}
+                  </AppWindow>
+                </div>
+              </div>
             </Sequence>
           );
         }

@@ -415,6 +415,214 @@ def test_artifact_registry_completeness():
     ok("All DEPENDENCY_MAP paths are registered in ARTIFACT_REGISTRY")
 
 
+# ── Phase 3: project_type-aware brain ────────────────────────────────────────
+
+_YOUTUBE_PJ = {
+    "schema_version": 2,
+    "project_type": "youtube",
+    "slug": "test-youtube",
+    "title": "Test YouTube Project",
+    "phase": "init",
+    "status": "in_progress",
+    "gates_passed": ["brief_approved"],
+    "created": "2026-01-01T00:00:00Z",
+    "updated": "2026-01-01T00:00:00Z",
+    "style": "editorial-authority",
+    "theme": "claude",
+    "theme_primary": "#D97757",
+    "theme_secondary": "#E8B88A",
+}
+
+_NO_TYPE_PJ = {
+    "schema_version": 2,
+    "slug": "test-no-type",
+    "title": "Test No Type Project",
+    "phase": "script",
+    "status": "in_progress",
+    "gates_passed": [],
+    "created": "2026-01-01T00:00:00Z",
+    "updated": "2026-01-01T00:00:00Z",
+    "style": "cinematic-presenter",
+    "theme": "test",
+    "theme_primary": "#000000",
+    "theme_secondary": "#FFFFFF",
+}
+
+
+# ── test 17: reel project uses reel gates (11 gates) ─────────────────────────
+
+def test_reel_project_uses_reel_gates():
+    from lib.constants import GATE_ORDER
+    with tempfile.TemporaryDirectory() as tmp:
+        pj = Path(tmp) / "project.json"
+        pj.write_text(json.dumps(_MINIMAL_PJ), encoding="utf-8")
+        d = diagnose_project(Path(tmp))
+
+        assert d.project_type == "reel", f"Expected project_type=reel, got {d.project_type}"
+        assert d.project_type_support == "supported"
+        assert d.gates.total == len(GATE_ORDER), (
+            f"Expected {len(GATE_ORDER)} gates for reel, got {d.gates.total}"
+        )
+        assert "gates" in d.to_dict()
+        assert d.to_dict()["gates"]["total"] == len(GATE_ORDER)
+    ok(f"Reel project → gate_count={len(GATE_ORDER)}, project_type=reel, project_type_support=supported")
+
+
+# ── test 18: youtube project skips reel gates ─────────────────────────────────
+
+def test_youtube_project_skips_reel_gates():
+    with tempfile.TemporaryDirectory() as tmp:
+        pj = Path(tmp) / "project.json"
+        pj.write_text(json.dumps(_YOUTUBE_PJ), encoding="utf-8")
+        d = diagnose_project(Path(tmp))
+
+        d_dict = d.to_dict()
+
+        assert d.project_type == "youtube", f"Expected project_type=youtube, got {d.project_type}"
+        assert d.project_type_support == "unsupported", (
+            f"Expected project_type_support=unsupported, got {d.project_type_support}"
+        )
+        assert d_dict["project_type"] == "youtube"
+        assert d_dict["project_type_support"] == "unsupported"
+
+        # Reel gate IDs must NOT appear in gates inventory
+        reel_gate_ids = {
+            "brief_approved", "theme_set", "script_approved", "reconciliation_resolved",
+            "visual_assignment_approved", "asset_fitness_passed", "technical_planning_approved",
+            "motion_intent_reviewed", "assets_validated", "preview_passed", "qa_passed",
+        }
+        reported_gates = set(d.gates.passed) | set(d.gates.missing)
+        overlap = reported_gates & reel_gate_ids
+        assert not overlap, (
+            f"YouTube project reported Reel gate IDs: {overlap}"
+        )
+
+        # gates.total must be 0 (no Reel gate count reported)
+        assert d.gates.total == 0, f"Expected gates.total=0 for YouTube, got {d.gates.total}"
+
+        # Autonomy must be can_continue=False, human_required=False
+        assert d.autonomy.can_continue_autonomously is False
+        assert d.autonomy.human_required is False
+        assert "YouTube" in d.autonomy.human_required_reason or \
+               "YouTube" in d.autonomy.next_action, (
+            "YouTube autonomy verdict should mention YouTube"
+        )
+
+    ok("YouTube project → no Reel gate IDs, project_type_support=unsupported, autonomy blocked")
+
+
+# ── test 19: unknown project_type → safe stop ─────────────────────────────────
+
+def test_unknown_project_type_safe_stop():
+    with tempfile.TemporaryDirectory() as tmp:
+        pj = Path(tmp) / "project.json"
+        pj.write_text(json.dumps(_NO_TYPE_PJ), encoding="utf-8")
+        d = diagnose_project(Path(tmp))
+
+        assert d.project_type == "unknown", f"Expected project_type=unknown, got {d.project_type}"
+        assert d.project_type_support == "unknown"
+
+        # Must have a validation_error about project_type
+        type_errors = [e for e in d.validation_errors if "project_type" in e]
+        assert type_errors, (
+            f"Expected validation_error about project_type, got: {d.validation_errors}"
+        )
+
+        # Autonomy must not allow autonomous continuation
+        assert d.autonomy.can_continue_autonomously is False
+
+        # to_dict() must include the project_type fields
+        d_dict = d.to_dict()
+        assert d_dict["project_type"] == "unknown"
+        assert d_dict["project_type_support"] == "unknown"
+
+    ok("Missing project_type → validation_error, project_type=unknown, can_continue=False")
+
+
+# ── test 20: autonomous-reel SKILL.md contains project_type check ─────────────
+
+def test_autonomous_reel_stops_on_youtube():
+    skill_path = Path(__file__).resolve().parents[2] / ".claude" / "skills" / "autonomous-reel" / "SKILL.md"
+    assert skill_path.exists(), f"SKILL.md not found at {skill_path}"
+    content = skill_path.read_text(encoding="utf-8")
+
+    assert "project_type check" in content, (
+        "SKILL.md should contain 'project_type check' section"
+    )
+    assert "⛔ Not a reel project" in content, (
+        "SKILL.md should contain the stop message for non-reel projects"
+    )
+    assert "/youtube skill suite" in content, (
+        "SKILL.md should mention the /youtube skill suite for YouTube projects"
+    )
+    assert "set project_type in project.json" in content, (
+        "SKILL.md should mention setting project_type for unknown type"
+    )
+
+    ok("autonomous-reel SKILL.md contains project_type check at top of Decision Tree")
+
+
+# ── test 21: sweep labels project_types ───────────────────────────────────────
+
+def test_sweep_labels_project_types():
+    from lib.brain.sweep import sweep_projects, format_sweep_table, format_sweep_json, ProjectSummary
+
+    with tempfile.TemporaryDirectory() as projects_root:
+        root = Path(projects_root)
+
+        # Create a reel project
+        reel_dir = root / "test-reel-sweep"
+        reel_dir.mkdir()
+        (reel_dir / "project.json").write_text(json.dumps(_MINIMAL_PJ | {"slug": "test-reel-sweep"}), encoding="utf-8")
+
+        # Create a YouTube project
+        yt_dir = root / "test-yt-sweep"
+        yt_dir.mkdir()
+        (yt_dir / "project.json").write_text(json.dumps(_YOUTUBE_PJ | {"slug": "test-yt-sweep"}), encoding="utf-8")
+
+        # Create an unknown-type project
+        unk_dir = root / "test-unk-sweep"
+        unk_dir.mkdir()
+        (unk_dir / "project.json").write_text(json.dumps(_NO_TYPE_PJ | {"slug": "test-unk-sweep"}), encoding="utf-8")
+
+        summaries = sweep_projects(root)
+
+        # Check project_type field is present and correct
+        types_found = {s.slug: s.project_type for s in summaries}
+        assert types_found.get("test-reel-sweep") == "reel", (
+            f"Reel project should have project_type=reel, got {types_found}"
+        )
+        assert types_found.get("test-yt-sweep") == "youtube", (
+            f"YouTube project should have project_type=youtube, got {types_found}"
+        )
+        assert types_found.get("test-unk-sweep") == "unknown", (
+            f"No-type project should have project_type=unknown, got {types_found}"
+        )
+
+        # Sweep table output should contain project_type labels
+        table = format_sweep_table(summaries)
+        assert "reel" in table, "Sweep table should mention 'reel'"
+        assert "youtube" in table, "Sweep table should mention 'youtube'"
+        assert "unknown" in table, "Sweep table should mention 'unknown'"
+
+        # Sweep JSON should have project_type field
+        sweep_json = format_sweep_json(summaries)
+        parsed = json.loads(sweep_json)
+        project_types_in_json = {p["slug"]: p["project_type"] for p in parsed}
+        assert project_types_in_json.get("test-reel-sweep") == "reel"
+        assert project_types_in_json.get("test-yt-sweep") == "youtube"
+        assert project_types_in_json.get("test-unk-sweep") == "unknown"
+
+        # YouTube project must NOT count as a broken reel project
+        yt_summary = next(s for s in summaries if s.slug == "test-yt-sweep")
+        assert yt_summary.gates_total == 0, (
+            f"YouTube project should have gates_total=0, not treated as broken reel. "
+            f"Got {yt_summary.gates_total}"
+        )
+
+    ok("Sweep labels project_types correctly; YouTube not counted as broken reel")
+
+
 # ── run all ───────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
@@ -439,5 +647,12 @@ if __name__ == "__main__":
     test_staleness_results_serialisable()
     test_missing_downstream_no_false_positive()
     test_artifact_registry_completeness()
+
+    print("\nPhase 3 — project_type-aware brain")
+    test_reel_project_uses_reel_gates()
+    test_youtube_project_skips_reel_gates()
+    test_unknown_project_type_safe_stop()
+    test_autonomous_reel_stops_on_youtube()
+    test_sweep_labels_project_types()
 
     print("\n\033[32mAll smoke tests passed.\033[0m\n")

@@ -55,6 +55,10 @@
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/qa-analytics-ingest.sh\""
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/post-render-advance.sh\""
           }
         ]
       }
@@ -69,6 +73,8 @@
       "Bash(python -m lib.migrate *)",
       "Bash(python -m lib.qa.cli *)",
       "Bash(python -m lib.brain *)",
+      "Bash(python -m lib.brain.memory_apply *)",
+      "Bash(python -m lib.critic *)",
       "Bash(python -m lib.analytics *)",
       "Bash(python lib/test_contracts.py *)",
       "Bash(npx tsc --noEmit *)"

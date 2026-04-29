@@ -78,6 +78,7 @@ After reviewing the candidates, score them using `component-selection-scoring.md
 | `OverlayKeyword` | Word or phrase floats ON the avatar face during delivery; editorial-authority style | Already used 3+ times this reel; word needs explosive kinetic energy | High — default choice, easily overused |
 | `GlitchText` *(clippkit)* | Pain payoff or dramatic negation; the word IS the dramatic moment | Factual/educational tone; the reel has not established drama yet | Low — rare and high-impact; wrong tone kills it |
 | `HeroTextCard` | Keyword is the entire beat and avatar should step back; section-opening emphasis | Avatar presence needed for the emotion to land | Medium |
+| `PunchText` | Single word delivered with maximum physical impact — slam + echo ripple shockwave effect; reserved for the reel's single hardest-hitting moment | Multi-word phrase; beats where CharKeyword or GlitchText are already used; calm tone | Low — one per reel maximum; flash-budget consideration applies |
 
 ---
 
@@ -89,6 +90,7 @@ After reviewing the candidates, score them using `component-selection-scoring.md
 | `HeroTextCard` | Claim needs full-frame visual gravity; section-opening beat; avatar should step back | Avatar presence reinforces the claim delivery | Medium |
 | `KeywordFadeIn` | Multi-word phrase benefits from word-by-word reveal; cinematic-presenter style | Single emphasis word (CharKeyword is stronger); already used twice this reel | Medium-high |
 | `TypingText` *(clippkit)* | Claim is a command, terminal output, or AI prompt text; the typing IS the proof | Claim is emotional/personal; not a technical string | Low |
+| `TypewriterCode` | Single-line technical claim typed character-by-character with a `$` prefix cursor — e.g. "npm install --save" or a model ID string; lighter-weight than TerminalWindow when only one line is needed | Multi-line output; emotional or conversational claims; not a technical string | Low |
 
 ---
 
@@ -101,6 +103,7 @@ After reviewing the candidates, score them using `component-selection-scoring.md
 | `LogoOverlay` | Brand name with SVG logo available; logo IS the reveal | No logo asset available; brand is abstract concept without visual identity | Low — mandatory when brand has a logo |
 | `LottieOverlay` | Brand has an animated Lottie logo file; more premium than static SVG | No Lottie JSON available for this brand | Low |
 | `TypingText` *(clippkit)* | Name appears as AI output or terminal response (the product "reveals itself" by typing) | Name is said by narrator as a declaration | Low |
+| `LowerThird` | Named tool introduction mid-reel where the presenter identifies a featured tool by name while still on camera; broadcast credential feel (title: "Claude Code", subtitle: "by Anthropic") | Hook zone (hook uses LogoOverlay + bounce, not LowerThird); beats where logo alone is sufficient | Low — underused; strong with cinematic-presenter style |
 
 ---
 
@@ -113,6 +116,8 @@ After reviewing the candidates, score them using `component-selection-scoring.md
 | `HeroTextCard` (number as hero) | Stat is strong enough to stand alone ("6X fewer tokens. Same quality."); no visual proof exists | A visual proof exists that would be more convincing than text | Low |
 | `FramedImage` + `OverlayKeyword` | Screenshot IS dominant proof; number overlaid directly on the chart or result | Number needs more visual emphasis than a text overlay | Medium |
 | `NumberPopup` alone | Numbered list item label (not proof stat); no screenshot needed; brief appearance | Stat requires proof visual — naked number without evidence is weak | Low |
+| `StatCounter` | Single headline number with animated count-up from 0 (or a lower value) — the growing number IS the beat; strongest for "X billion parameters", "$0 cost", "6x faster" reveals | Multiple stats in one beat; stat requires benchmark context (ChartBar is better); stat is embedded in a screenshot | Low — underused; beats OverlayKeyword when the number alone deserves animated emphasis |
+| `ChartBar` | Multiple comparable values (2–5 bars): benchmark, speed, cost comparisons where the relative heights prove the claim; equivalent of showing a bar chart | Single stat with no comparison dimension; no data array to chart; beat is short (<2s) | Low — underused; replaces a proof screenshot when a chart screenshot is unavailable or not legible at split-screen scale |
 
 ---
 
@@ -125,6 +130,11 @@ After reviewing the candidates, score them using `component-selection-scoring.md
 | `FeatureMockup` | Feature is described abstractly and no screenshot exists OR available screenshots aren't specific enough | Real product UI exists and passes MATCH fitness | Low |
 | `TypingText` *(clippkit)* | Explanation involves showing an AI typing, CLI command, or prompt-response pattern | Explanation is about a static product state (a dashboard, a settings screen) | Low |
 | `BRollVideo` (center-full) | Explanation is about an action or process with video coverage | Explanation is about a visible UI state (static) | Medium |
+| `TerminalWindow` | Explanation involves a multi-line CLI sequence, npm/deploy command chain, or developer tool-use flow — macOS terminal chrome makes it instantly credible; narrator walks through each command line | Explanation is about a GUI product (no CLI involved); beat is too short (<2s) for multi-line reveal | Low — underused; wins over TypingText when 3+ lines of output are needed |
+| `TypingInput` | Explanation shows the user typing a prompt INTO a known product's input field (Claude, Google, generic chat) — the act of typing IS the demonstration | Explanation is about what the output looks like (TypingText/TerminalWindow are better for output side); no identifiable product input field | Low — underused; stronger than a screenshot when the claim is "you just type X" |
+| `TypewriterCode` | Explanation involves a single technical line — a CLI command, a model name, a package name — that should appear as if typed in a terminal; lighter than TerminalWindow for one-liners | Multi-line output; explanation is conversational or non-technical | Low |
+| `HighlightBox` | Explanation says "look at this" or "right here" and points at a rectangular UI region on screen (input box, button group, settings panel) during a demo video or screenshot; rectangular annotation is more precise than AnnotationCircle for rectangular targets | No demo video or screenshot is on screen simultaneously; the target is a point element (AnnotationCircle is better) | Low — underused; beats AnnotationCircle when the target element has a clearly rectangular boundary |
+| `ProgressSteps` | Explanation describes a numbered multi-step process ("first Claude reads your prompt, then it builds the plan, then it executes") where the step sequence IS the explanation | Single-step explanation; explanation is conceptual without a sequential structure; fewer than 3 steps | Low — underused; wins over KeywordFadeIn + NumberPopup series when steps should feel connected and sequential |
 
 ---
 
@@ -135,6 +145,7 @@ After reviewing the candidates, score them using `component-selection-scoring.md
 | `AvatarVideo` full-screen | Narrator delivers a pivot line, payoff, or insight requiring human connection | Visual proof should be on screen simultaneously to support the claim | High — default, must earn each full-screen use |
 | `AvatarVideo` + `OverlayKeyword` | Key phrase can be reinforced with text overlay on the face | Face IS the whole message; overlay would compete with delivery | Medium |
 | `AvatarVideo` + `BadgePopup` | Small label adds context without competing with face (e.g. "GOOGLE LABS") | No label adds genuine semantic value | Low |
+| `AvatarVideo` + `LowerThird` | Presenter identifies themselves or a guest/source while on camera; broadcast-style name badge adds authority without obscuring the face; best for the first direct-address beat in a new reel section | Beats where identity is already established; beats where the badge would compete with caption readability | Low — underused; adds journalist-style credibility to direct address |
 
 ---
 
@@ -157,6 +168,9 @@ After reviewing the candidates, score them using `component-selection-scoring.md
 | `FramedImage` + `BadgePopup` | Source page screenshot exists; badge labels the institution | Source needs more than a label — specific claim in the screenshot needs annotation | Medium |
 | `ToastCard` *(clippkit)* | Brief trust callout (0.5–1.5s); "this just happened" framing; sub-card feel | Trust beat requires sustained proof (3s+) — ToastCard is too brief | Low — underused |
 | `LogoOverlay` (institution logo) | Credibility is entirely about WHO said it (MIT, Google, Anthropic); logo IS the credential | The claim itself also needs to be visible; logo alone isn't enough | Low |
+| `SourceProofCard` | A specific named person, researcher, or account said something that supports the claim; the card renders their name + handle + body text with animated highlight on the key phrase; stronger than a raw tweet screenshot because it's editorial and legible at mobile scale | Trust claim is institutional (no named person); trust claim is numerical (use StatCounter or AnnotationCircle instead) | Low — underused; the single best component for "and [expert] says…" trust beats |
+| `TextHighlight` | Trust claim is a short quoted statement where specific words should be swept with an animated underline/color — e.g. "peer-reviewed and cited 12,000 times"; the highlight sweep directs the viewer to the key phrase | Trust beat needs a screenshot as primary proof (AnnotationCircle is better); statement is too long for legible rendering at mobile scale | Low — underused; works when the claim IS the text and the emphasis is the proof |
+| `KineticQuote` | Trust beat is a direct quote from a known authority (word-by-word kinetic entrance with speaker attribution via `accentWords`); cinematic-presenter style where the quote is a standalone beat | Editorial-authority style (too slow); the source needs institutional logo rather than a quote | Low — underused; stronger than HeroTextCard when the exact words of a quote matter |
 
 ---
 
@@ -168,6 +182,7 @@ After reviewing the candidates, score them using `component-selection-scoring.md
 | `ComparisonGrid` | Before/after involves two screenshots or two UI states | Contrast is text-only; no visual assets for both sides | Low |
 | `OverlayKeyword` with strikethrough styling | Simple visual negation of a word or short phrase | The swap animation would be more compelling | Medium |
 | `GlitchText` *(clippkit)* | Negation is dramatic and the "wrong" side should feel broken | Constructive or neutral tone | Low |
+| `ComparisonSlider` | Before/after transformation where a single image morphs across a divider sweep — e.g. image before AI edit vs after, code before refactor vs after, UI before vs after a feature addition; divider sweeps from 80% to 20% revealing the "after" state progressively | Two separate distinct screenshots are available (ComparisonGrid is better for genuinely different UI states); no single transformable image exists; beat is very short (<2s) | Low — underused; beats ComparisonGrid when both "states" can be represented by showing the same frame at two moments |
 
 ---
 
@@ -179,6 +194,7 @@ After reviewing the candidates, score them using `component-selection-scoring.md
 | `CardStack` | 3–5 items presented as a visual run; cards feel native for the list content | Fewer than 3 items (single-card stack looks weak); items need individual screenshot proof | Low |
 | `NumberPopup` + `FramedImage` | Each list item has a supporting screenshot; the list is proof-led | No supporting visuals per item | Low |
 | `ChapterDivider` | Each list item is a tool or major section that deserves a full visual reset | List should feel continuous — no reset needed between items | Low |
+| `ProgressSteps` | List items are sequential steps (not parallel alternatives) — a workflow where step 1 enables step 2 enables step 3; the connecting vertical line visually communicates dependency; 3–5 steps with label + optional sublabel | List items are parallel alternatives (CardStack is better); fewer than 3 steps; list items require individual screenshot proof | Low — underused; wins over NumberPopup + KeywordFadeIn series when the sequential relationship between steps matters |
 
 ---
 
@@ -189,6 +205,7 @@ After reviewing the candidates, score them using `component-selection-scoring.md
 | `ComparisonGrid` | Two screenshots or UI states available for both sides; visual A vs B | No visual assets for one or both sides | Low — purpose-built |
 | `StrikethroughSwap` | Comparison has a clear winner (old → new, wrong → right) | Comparison is genuinely neutral (both sides have merit) | Low |
 | `FramedImage` in sequence | Two screenshots presented one after another (cut, not side-by-side) | Side-by-side visual comparison is needed | Medium |
+| `ComparisonSlider` | Comparison is a before/after transformation of the same subject (a photo edited by AI, a UI redesigned) where a sweep divider progressively reveals the "after" state; the animation itself communicates the transition | Comparison involves two genuinely different products or pages (ComparisonGrid is better) | Low — underused; the only component that communicates transformation rather than just placement |
 
 ---
 
@@ -198,6 +215,8 @@ After reviewing the candidates, score them using `component-selection-scoring.md
 |---|---|---|---|
 | Multiple `FramedImage` in rapid sequence | Recapping 3–5 distinct proof moments from earlier in the reel; fast cuts reinforce breadth | New content is being introduced (not a recap) | Medium |
 | `FramedImage` + `OverlayKeyword` pairing per image | Each image needs a brief label to name what it shows | Images speak for themselves without labels | Medium |
+| `TextHighlight` | Reframe is a short statement where 2–3 specific words should be swept with animated color emphasis — "the future of work is not replacing jobs, it's replacing *tasks*"; cinematic-presenter style | Reframe requires visual proof on screen (FramedImage beats text-only); statement is too long for legible rendering | Low — underused; wins over HeroTextCard when the emphasis must land on specific words within a sentence, not the full card |
+| `KineticQuote` | Reframe is a direct quotable statement — either from the reel itself (for dramatic recap) or from an authority the viewer recognizes; word-by-word spring entrance creates anticipation; `accentWords` highlights the key insight | Editorial-authority style (too slow); reframe is a numerical fact (StatCounter or AnnotationCircle is better) | Low — underused; wins over HeroTextCard when the sentence structure and emphasis distribution matter |
 
 ---
 
@@ -207,6 +226,7 @@ After reviewing the candidates, score them using `component-selection-scoring.md
 |---|---|---|---|
 | `AvatarVideo` full-screen + `OverlayKeyword` | CTA is conversational; "follow for more like this" energy; face + text reinforces the ask | CTA involves a specific action beyond following that needs visual framing | Medium |
 | `AvatarVideo` + `HeroTextCard` (split or full-screen) | CTA action word needs maximum visual weight; card can show the action clearly | Energy should stay entirely on the face | Low |
+| `ProgressRing` (overlay on avatar CTA) | CTA has a "follow before the video ends" or countdown energy — the ring fills in while the narrator speaks; adds temporal urgency without text clutter; must appear over avatar not over proof content | CTA is information-dense (OverlayKeyword handles text); reel style is editorial-authority (too decorative for that register) | Low — underused; adds urgency signal the viewer's eye catches even before reading the caption |
 
 ---
 
@@ -218,6 +238,7 @@ After reviewing the candidates, score them using `component-selection-scoring.md
 | `AvatarVideo` direct address | Narrator bridges sections verbally; conversational pivot | Silent/ambient transition desired | Medium |
 | `HeroTextCard` section label | Explicit chapter/section labeling needed; viewer needs a heading | Transitions should feel fluid — no heading needed | Low |
 | `LightLeakOverlay` | Cinematic-presenter style; soft scene transition | Editorial-authority style; or flash budget already spent (max 1 per reel) | Low |
+| `SceneBreak` | Brief GPU-safe flash/whip used at cut points between proof sections — adds kinetic energy to an otherwise clean jump cut; whip-left/whip-right directions match the editorial direction of the next beat; iris-pulse for a single high-energy moment | Beats that already have a FlashReset or LightLeakOverlay (flash budget constraint); editorial-authority transitions already handled by FlashReset | Low — underused; max 1 per reel to respect flash budget |
 
 ---
 
@@ -254,6 +275,21 @@ Full role definitions are in `component-selection-scoring.md` → Visual Role & 
 | `FlashReset` | `reset-interrupt` | `full-frame-card` |
 | `ChapterDivider` | `reset-interrupt` | `full-frame-card` |
 | `LightLeakOverlay` | `reset-interrupt` | `center-full` |
+| `SceneBreak` | `reset-interrupt` | `center-full` |
+| `StatCounter` | `text-emphasis` | `full-frame-card` or `split-content` |
+| `ChartBar` | `proof-display` | `full-frame-card` |
+| `ProgressSteps` | `list-structure` | `full-frame-card` |
+| `ComparisonSlider` | `comparison` | `center-full` |
+| `TextHighlight` | `text-emphasis` | `full-frame-card` |
+| `KineticQuote` | `text-emphasis` | `full-frame-card` |
+| `SourceProofCard` | `credibility-signal` | `full-frame-card` |
+| `LowerThird` | `credibility-signal` | `corner-micro` |
+| `PunchText` | `text-emphasis` | `full-frame-card` |
+| `HighlightBox` | `annotation-focus` | `annotation-overlay` |
+| `TerminalWindow` | `proof-display` | `center-full` or `split-content` |
+| `TypingInput` | `proof-display` | `split-content` or `center-full` |
+| `TypewriterCode` | `proof-display` | `split-content` |
+| `ProgressRing` | `credibility-signal` | `corner-micro` |
 
 ---
 
@@ -482,7 +518,8 @@ When selecting components, consult this inventory. All components live in `remot
 | Component | What it does | Best for |
 |---|---|---|
 | `AvatarVideo` | Persistent talking-head video | Direct address, setup, CTA, trust |
-| `FramedImage` | Static image in frame (split or full) | Screenshots, charts, diagrams, research pages |
+| `FramedImage` | Static image in frame (split or full). `motionMode="perspective-tilt"` adds deterministic 3D oscillation (±3°X, ±1.5°Y) during hold | Screenshots, charts, diagrams, research pages |
+| `AppWindow` | macOS-style browser/app chrome wrapper: traffic lights, optional title, optional URL bar. Use via `display: "app-window"` in the demo lane or directly in JSX as a children wrapper | Wrapping screenshots or videos in polished window chrome — SaaS product demos, Claude.ai, browser-based tools, developer workflows |
 | `BRollVideo` | Video clip playback | Demo recordings, cinematic footage |
 | `ImageMontage` (planned) | Staggered multi-image stack — **not yet built**, use multiple `FramedImage` entries in sequence | Recap, multi-source validation |
 
@@ -503,6 +540,10 @@ When selecting components, consult this inventory. All components live in `remot
 | `CircularWaveform` *(clippkit)* | Audio-driven circular orb | Centered audio orb visualization — alternative to bar waveform |
 | `GlitchText` *(clippkit)* | Destabilized RGB-split text | High-impact dramatic emphasis (pain payoffs, "GONE" moments) — pair with FlashReset |
 | `TypingText` *(clippkit)* | Terminal/chat typing simulation with blinking cursor | "Claude is typing right now" mockups, CLI command demos, prompt input visualizations |
+| `TerminalWindow` | Full multi-line terminal with macOS chrome, per-line character typing, deterministic cursor blink, optional 3D perspective tilt. Use via `type: "TerminalWindow"` in overlays lane | Claude Code CLI demos, npm/deploy commands, multi-step developer workflows, AI agent tool-use sequences |
+| `StatCounter` | Animated number count-up from `startValue` to `value` with spring pop entry and optional label. `prefix`/`suffix` props for "$", "x", "%". Integer vs decimal display auto-detected. Use via `type: "StatCounter"` in overlays lane | Stat reveals ("6x faster", "98% accuracy", "$0 cost"), proof beats with a single headline number |
+| `ComparisonSlider` | Before/after comparison with a swept divider line revealing the after image. `startPosition`/`endPosition` props (% from left, default 80→20). Use via `type: "ComparisonSlider"` in overlays lane | Contradiction/negation proof beats, before/after transformation reveals, A vs B comparisons with two image assets |
+| `TextHighlight` | Full-frame text statement with `highlightWords` getting an animated color + underline sweep. `size` prop for font size. Use via `type: "TextHighlight"` in overlays lane | Trust/credibility quotes, reframe beats, key claim statements where specific words need emphasis sweep |
 | `ToastCard` *(clippkit)* | Notification card with spring entry from any corner | Trust beat sub-cards, brief proof callouts, "this just happened" notifications |
 | `Caption` | Bottom-of-screen subtitle text | Always present |
 
@@ -520,6 +561,8 @@ When selecting components, consult this inventory. All components live in `remot
 | `AnnotationCircle` | Hand-drawn SVG annotation (`@remotion/paths` evolvePath) | Ellipse shape: circle around UI elements. Underline shape (`shape="underline"`): underline beneath text or numbers in proof screenshots. Draw-on animation is frame-accurate. |
 | `CursorClick` | Cursor with click ripple | Simulating button clicks |
 | `NoiseOverlay` | Film grain texture | Always present (subtle) |
+| `ChartBar` | Data-driven animated bar chart — bars grow via spring with stagger. Props: `data` (label/value/color array), `title?`, `unit?`, `maxValue?`, `staggerFrames`. Use via `type: "ChartBar"` in overlays lane | Benchmark comparisons, speed/accuracy charts, side-by-side metric bars, proof-stat visualization when a number alone isn't enough |
+| `ProgressSteps` | Numbered step list with animated connecting line. Steps reveal sequentially via spring. Props: `steps` (label/sublabel/color), `accentColor`, `staggerFrames`. Use via `type: "ProgressSteps"` in overlays lane | Workflow explanations ("3 steps to X"), process proof beats, feature onboarding sequences, how-it-works breakdowns |
 
 ### When to build a new component
 

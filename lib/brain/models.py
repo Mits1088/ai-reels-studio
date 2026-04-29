@@ -131,6 +131,10 @@ class Diagnosis:
     # Mode flags (default False — never changes existing behavior)
     critic_hard_mode: bool = False
 
+    # Project type (set by diagnose_project — defaults preserve Reel behavior)
+    project_type: str = "reel"          # "reel" | "youtube" | "unknown"
+    project_type_support: str = "supported"  # "supported" | "unsupported" | "unknown"
+
     # ── Convenience properties ────────────────────────────────────────────────
 
     @property
@@ -256,5 +260,7 @@ class Diagnosis:
             "critic_advisory_signal": self.critic_advisory_signal,
             "critic_hard_mode": self.critic_hard_mode,
             "critic_hard_blocked": self.critic_hard_blocked,
+            "project_type": self.project_type,
+            "project_type_support": self.project_type_support,
             "diagnosis_timestamp": self.diagnosis_timestamp,
         }

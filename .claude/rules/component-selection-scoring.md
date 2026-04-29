@@ -115,25 +115,34 @@ These components are underused relative to their editorial value. Apply a **+10 
 | `ComparisonGrid` | Comparison, Contradiction/negation (visual A vs B) | Only component built for side-by-side; underused outside explicit "vs" framing |
 | `CardStack` | List item (3–5 items as a run) | Better rhythm than five consecutive NumberPopup+KeywordFadeIn pairs; rarely selected |
 | `LogoOverlay` in body beats | Name reveal, Tool intro (body beat naming a brand) | Required when a brand is named but often forgotten outside the hook |
+| `StatCounter` | Number+proof (single headline stat with count-up animation) | Animated number reveals feel more dynamic than static overlays; OverlayKeyword or HeroTextCard is chosen by default even when the number should move |
+| `ChartBar` | Number+proof (multi-value benchmark or comparison), Comparison | The only component that renders a full bar chart; replaces proof screenshots when data is better shown as bars than raw screenshot crops |
+| `ProgressSteps` | Explanation over visual (sequential workflow), List item (3–5 sequential steps) | Better for sequential dependencies than NumberPopup series; the connecting vertical line communicates order; rarely considered because NumberPopup is the reflex |
+| `ComparisonSlider` | Contradiction/negation (before/after transformation), Comparison (same subject two states) | Communicates transformation better than ComparisonGrid for same-subject before/after; divider sweep IS the editorial argument |
+| `TextHighlight` | Trust/credibility (quoted claim with key phrase emphasis), Reframe/montage | Animated color sweep on specific words is more precise than HeroTextCard for sentence-level emphasis; rarely considered because HeroTextCard is the text reflex |
+| `HighlightBox` | Explanation over visual (rectangular UI region during demo) | Rectangular annotation beats AnnotationCircle ellipse for rectangular UI targets (buttons, panels, tables); never considered because AnnotationCircle is the annotation reflex |
+| `SourceProofCard` | Trust/credibility (named person, expert, or social post) | The only component that renders a styled attribution card with name + handle + animated highlight; raw screenshot replaces it by default |
+| `LowerThird` | Name reveal (mid-reel tool introduction), Direct address (speaker identification) | Adds broadcast-style authority; almost always replaced by a LogoOverlay or BadgePopup even when the context calls for identification |
+| `PunchText` | Emotional keyword (the reel's single hardest-hitting moment) | Slam + echo ripple is the most physically impactful text component; CharKeyword is chosen by default even when maximum physical weight is needed |
+| `KineticQuote` | Trust/credibility (direct quote from authority), Reframe/montage (dramatic payoff statement) | Word-by-word spring entrance with `accentWords` is more editorial than HeroTextCard; rarely considered when a quote or payoff statement is needed |
+| `ProgressRing` | CTA (countdown or progress urgency signal overlay) | Only component that adds a visible temporal signal during the CTA; OverlayKeyword is chosen by default even when urgency is the right energy |
+| `TerminalWindow` | Explanation over visual (multi-line CLI workflow, developer tool-use) | Full macOS terminal chrome with per-line typing is more credible than TypingText for developer-focused reels; TypingText is chosen by default even when 3+ command lines are needed |
+| `TypingInput` | Explanation over visual (user typing a prompt into a product input field) | Product-accurate input field animation is more demonstrative than a static screenshot; TypingText is chosen by default even when the act of typing is the proof |
+| `TypewriterCode` | Staccato claim (single technical line), Explanation over visual (one-line command) | Single-line terminal typing with cursor is lighter than TerminalWindow for simple one-liners; TypingText is chosen by default even when the terminal register is right |
+| `SceneBreak` | Section transition/bridge (kinetic flash at cut point) | GPU-safe whip/iris flash adds kinetic energy to a cut without spending the full FlashReset flash budget; jump-cut is used by default even when a brief energy flash would improve the edit |
 
 ---
 
 ## Aspirational Components
 
-These components do not yet have confirmed entries in the component inventory. When built, they should receive the same +10 encouragement bonus. **Verify availability before using in any timeline.**
+These components do **not yet exist** in the codebase. When built, they should be registered in the OVERLAY_REGISTRY and receive the same +10 encouragement bonus. **Verify availability before using in any timeline.**
 
 | Component | Purpose when built | Beat class |
 |---|---|---|
-| `SourceProofCard` | Branded source attribution card: logo + claim text + source URL/name | Trust/credibility |
-| `LowerThird` | Broadcast-style name/title badge anchored at the bottom of the frame | Direct address (named guest), Tool intro |
-| `ComparisonSlider` | Animated before/after slider with drag-reveal animation | Contradiction/negation, Comparison |
-| `SceneBreak` | Full-frame scene reset with motion energy — harder than FlashReset, softer than hard cut | Section transition/bridge |
-| `HighlightBox` | Animated highlight rectangle drawn around a specific UI region | Explanation over visual (alternative to AnnotationCircle for rectangular regions) |
-| `TextHighlight` | Word-level highlight sweep across a quote or caption | Trust/credibility (quoting source text), Reframe/montage |
-| `PunchText` | Single word with maximum kinetic impact: spring + scale + SFX | Emotional keyword (when CharKeyword needs more physical weight) |
-| `KineticQuote` | Multi-line quote with staggered word reveal, speaker attribution | Trust/credibility (direct quote), Reframe |
 | `GlassCard` | Frosted glass card presenting proof stats or feature list | Number+proof, List item |
-| `GuidedDemo` | Animated cursor walkthrough overlaid on a screenshot | Explanation over visual (guided UI tour) |
+| `GuidedDemo` | Animated cursor walkthrough overlaid on a screenshot — guided UI tour with waypoints | Explanation over visual |
+
+> **Previously aspirational, now built and in OVERLAY_REGISTRY:** SourceProofCard, LowerThird, SceneBreak, HighlightBox, PunchText, KineticQuote. These are fully selectable with the +10 encouragement bonus — see the Underused Component Encouragement table above.
 
 ---
 
@@ -158,6 +167,38 @@ These are structural rather than semantic — no scoring needed. Select by style
 - `FlashReset` → editorial-authority, hard section break
 - `LightLeakOverlay` → cinematic-presenter, soft scene transition (max 1 per reel)
 - `ChapterDivider` → any style, tool introduction (creates full visual reset)
+
+---
+
+## Component Exclusion List
+
+These components must **never** appear in Step 2b candidate sets. They serve non-editorial or pipeline-only roles and are not selectable through Phase 4b-ii scoring. If a candidate set cites one of these, remove it before proceeding.
+
+### Internal / System-only — scene infrastructure, not content
+
+These handle backgrounds, effects layers, and composition scaffolding. They are wired directly in `ReelComposition.tsx` — never placed via the overlays lane in `timeline.json`.
+
+`AuroraBackground`, `BackgroundBeams`, `GradientMesh`, `SmokeWisp`, `FocusVignette`, `GlowBorder`, `NoiseOverlay`, `AnimatedBackground`, `AnimatedDivider`, `AnimatedGrid`, `HookIntroScene`, `SkillActivationScene`, `SkillQuestionsScene`, `ImageLayer`, `CircuitTrace`, `FloatingIcons`, `GlitchOverlay`, `ZoomParallax`, `LetterboxCinematic`, `ShimmerBar`, `SpotlightBeam`, `SweepReveal`, `MorphBlob`, `ParticleNetwork`, `PrismFlare`, `PulsingOrb`, `RadialBurst`, `RipplePulse`, `EmojiReactions`, `IconOrbit`, `ImageAutoSlider`, `PunchInZoom`, `TransitionWrapper`, `Caption`
+
+### Display-mode only — invoked via `display:` field, not overlays lane
+
+These are selected by setting `display: "..."` on a demo or broll lane entry. They control how demo content is framed (window chrome, full-screen, scroll, grid) — they are not scored as overlay candidates.
+
+`AppWindow` (`display: "app-window"`), `GuidedDemo` (`display: "guided-demo"`), `ImageGrid2x2` (`display: "image-grid-2x2"`), `ScrollImage` (`display: "scroll-image"`)
+
+### Deprecated — replaced by named component
+
+| Deprecated | Replacement |
+|---|---|
+| `NumberCounter` | `StatCounter` — same animated count-up, improved spring entry and label support |
+| `ClaudeLogoReveal` | `LogoOverlay` with `bounce: true, trail: true` — more flexible, works for any brand |
+| `CodeReveal` | `TypewriterCode` — identical capability, consistent naming |
+
+### YouTube-pipeline only — not for vertical 9:16 reels
+
+These components exist for the horizontal YouTube composition (1920×1080) and are never appropriate in vertical reel timelines.
+
+`LinkOverlay`, `SubscribeCTA`, `EndScreen`
 
 ---
 

@@ -185,6 +185,7 @@ Pipeline tools:
 - Gates:      `python -m lib.gates status projects/<slug>`
 - Components: `python -m lib.components check <Name>`
 - Assets:     `python -m lib.assets <verb>` — see "Asset Sourcing" section below
+- Brain:      `python -m lib.brain <diagnose|sweep|status> [projects/<slug>]` — reads/writes `data/analytics.db` (SQLite, gitignored — see `data/README.md`)
 - Preview:    `python -m lib.preview_beats projects/<slug>` — render one frame per editorial beat (run during Phase 5 assembly, not just at the end)
 - Edit plan:  `python -m lib.edit_plan {validate,compile,summary,parity}` — compile edit-plan.json into timeline.json deterministically
 

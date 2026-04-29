@@ -20,6 +20,10 @@ from pathlib import Path
 from lib.constants import GATE_ORDER, CURRENT_SCHEMA_VERSION, VALID_GATE_IDS
 from lib.validate import validate_project
 
+# Recognised project_type values
+_SUPPORTED_PROJECT_TYPES = {"reel"}
+_KNOWN_PROJECT_TYPES = {"reel", "youtube"}
+
 from .models import (
     ArtifactEntry,
     ArtifactInventory,
@@ -360,6 +364,32 @@ def _build_critic_status(project_dir: Path) -> CriticStatus:
 
 # ── Autonomy verdict ──────────────────────────────────────────────────────────
 
+def _build_youtube_autonomy_verdict() -> AutonomyVerdict:
+    """Fixed autonomy verdict for YouTube projects (not yet supported by autonomous-reel)."""
+    return AutonomyVerdict(
+        can_continue_autonomously=False,
+        human_required=False,
+        human_required_reason="YouTube autonomy is not yet supported",
+        next_action="Use the /youtube skill suite",
+        next_action_actor="human",
+        next_action_command="",
+        confidence="high",
+    )
+
+
+def _build_unknown_type_autonomy_verdict() -> AutonomyVerdict:
+    """Fixed autonomy verdict for projects with missing or unrecognised project_type."""
+    return AutonomyVerdict(
+        can_continue_autonomously=False,
+        human_required=False,
+        human_required_reason="",
+        next_action="Set project_type to 'reel' or 'youtube' in project.json, then re-run diagnosis",
+        next_action_actor="human",
+        next_action_command="",
+        confidence="high",
+    )
+
+
 def _build_autonomy_verdict(
     gates: GateInventory,
     qa: QAStatus,
@@ -535,8 +565,24 @@ def diagnose_project(project_dir: Path, critic_hard_mode: bool = False) -> Diagn
             diagnosis_timestamp=now,
         )
 
+    # ── Detect project_type ───────────────────────────────────────────────────
+    project_type_raw = project.get("project_type")
+    if project_type_raw == "reel":
+        project_type = "reel"
+    elif project_type_raw == "youtube":
+        project_type = "youtube"
+    else:
+        project_type = "unknown"
+
     # ── Validate project.json ─────────────────────────────────────────────────
     validation_errors = [str(e) for e in validate_project(project)]
+
+    # For unknown project_type, add a specific error to guide the user
+    if project_type == "unknown":
+        validation_errors.append(
+            "project_type: not set — run lib.migrate or set project_type to "
+            "'reel' or 'youtube' in project.json"
+        )
 
     schema_version = project.get("schema_version")
     schema_ok = (
@@ -544,6 +590,88 @@ def diagnose_project(project_dir: Path, critic_hard_mode: bool = False) -> Diagn
         and schema_version == CURRENT_SCHEMA_VERSION
     )
 
+    # ── YouTube branch — skip Reel gate logic entirely ────────────────────────
+    if project_type == "youtube":
+        # Still build artifact inventory and QA/critic signals (generic, not reel-specific)
+        gates_passed_raw = project.get("gates_passed", [])
+        # Build an empty Reel-style gate inventory but with 0 total so callers don't
+        # interpret it as a broken Reel.  Reel gate IDs are never reported for YouTube.
+        youtube_gates = GateInventory(
+            passed=[],
+            missing=[],
+            next_required=None,
+            unknown_gates=[],
+            total=0,
+        )
+        artifacts = _build_artifact_inventory(project_dir, gates_passed_raw)
+        qa = _build_qa_status(project_dir)
+        critic = _build_critic_status(project_dir)
+        autonomy = _build_youtube_autonomy_verdict()
+
+        return Diagnosis(
+            slug=project.get("slug", project_dir.name),
+            title=project.get("title", ""),
+            project_dir=str(project_dir),
+            project_json_found=True,
+            schema_version=schema_version,
+            schema_ok=schema_ok,
+            phase=project.get("phase", "unknown"),
+            status=project.get("status", "unknown"),
+            style=project.get("style", "unknown"),
+            theme=project.get("theme", ""),
+            theme_primary=project.get("theme_primary", ""),
+            validation_errors=validation_errors,
+            gates=youtube_gates,
+            artifacts=artifacts,
+            qa=qa,
+            critic=critic,
+            autonomy=autonomy,
+            critic_hard_mode=critic_hard_mode,
+            diagnosis_timestamp=now,
+            project_type="youtube",
+            project_type_support="unsupported",
+        )
+
+    # ── Unknown project_type branch ───────────────────────────────────────────
+    if project_type == "unknown":
+        gates_passed_raw = project.get("gates_passed", [])
+        unknown_gates = GateInventory(
+            passed=[],
+            missing=[],
+            next_required=None,
+            unknown_gates=[],
+            total=0,
+        )
+        artifacts = _build_artifact_inventory(project_dir, gates_passed_raw)
+        qa = _build_qa_status(project_dir)
+        critic = _build_critic_status(project_dir)
+        autonomy = _build_unknown_type_autonomy_verdict()
+
+        return Diagnosis(
+            slug=project.get("slug", project_dir.name),
+            title=project.get("title", ""),
+            project_dir=str(project_dir),
+            project_json_found=True,
+            schema_version=schema_version,
+            schema_ok=schema_ok,
+            phase=project.get("phase", "unknown"),
+            status=project.get("status", "unknown"),
+            style=project.get("style", "unknown"),
+            theme=project.get("theme", ""),
+            theme_primary=project.get("theme_primary", ""),
+            validation_errors=validation_errors,
+            gates=unknown_gates,
+            artifacts=artifacts,
+            qa=qa,
+            critic=critic,
+            autonomy=autonomy,
+            critic_hard_mode=critic_hard_mode,
+            diagnosis_timestamp=now,
+            project_type="unknown",
+            project_type_support="unknown",
+        )
+
+    # ── Reel branch (project_type == "reel") — existing behavior unchanged ────
     # ── Build sub-models ──────────────────────────────────────────────────────
     gates_passed_raw = project.get("gates_passed", [])
     gates = _build_gate_inventory(gates_passed_raw)
@@ -576,4 +704,6 @@ def diagnose_project(project_dir: Path, critic_hard_mode: bool = False) -> Diagn
         autonomy=autonomy,
         critic_hard_mode=critic_hard_mode,
         diagnosis_timestamp=now,
+        project_type="reel",
+        project_type_support="supported",
     )

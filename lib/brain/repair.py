@@ -161,6 +161,7 @@ def generate_repair_plan(
     Build a repair plan from a completed Diagnosis.
 
     Priority order:
+      0. project_type check (YouTube or unknown → emit type-specific step only)
       1. Validation errors (block everything else)
       2. Gate–artifact mismatches (gate claimed but output missing)
       3. QA failures (blockers from qa_report.json)
@@ -179,25 +180,111 @@ def generate_repair_plan(
     order = 1
     specialist_agents: list[str] = []
 
-    # ── Priority 1: Validation errors ─────────────────────────────────────
-    if d.validation_errors:
+    # ── Priority 0: project_type guard ────────────────────────────────────────
+    pt = getattr(d, "project_type", "reel")
+
+    if pt == "youtube":
         steps.append(RepairStep(
-            order=order,
+            order=1,
             actor="human",
             description=(
-                f"Fix {len(d.validation_errors)} project.json validation error(s)"
+                "This is a YouTube project — use the /youtube skill suite, not autonomous-reel."
             ),
-            command=f"PYTHONPATH=. python -m lib.validate projects/{d.slug}",
+            command="",
             gate_target=None,
             why=(
-                "Validation errors block all downstream phases — "
-                "every other repair step depends on a valid project.json."
+                "autonomous-reel only supports project_type='reel'. "
+                "YouTube projects must be managed via the /youtube skill suite."
             ),
             files_to_inspect=["project.json"],
-            specialist_agent=None,
         ))
-        order += 1
-        for err in d.validation_errors[:3]:
+        return RepairPlan(
+            project_slug=d.slug,
+            status="blocked",
+            blocked_reason="YouTube project — autonomous-reel does not apply",
+            steps=steps,
+            estimated_human_touchpoints=1,
+            confidence="high",
+            notes="Use the /youtube skill suite for this project.",
+        )
+
+    if pt == "unknown":
+        steps.append(RepairStep(
+            order=1,
+            actor="human",
+            description=(
+                "project_type is not set. Set project_type to 'reel' or 'youtube' "
+                "in project.json, then re-run diagnosis."
+            ),
+            command=f"PYTHONPATH=. python -m lib.migrate projects/{d.slug}",
+            gate_target=None,
+            why=(
+                "project_type must be set before the brain can determine which pipeline "
+                "applies. lib.migrate can add it automatically, or set it manually."
+            ),
+            files_to_inspect=["project.json"],
+        ))
+        return RepairPlan(
+            project_slug=d.slug,
+            status="blocked",
+            blocked_reason="project_type not set — cannot determine pipeline",
+            steps=steps,
+            estimated_human_touchpoints=1,
+            confidence="high",
+            notes="Set project_type in project.json first.",
+        )
+
+    # ── Priority 1: Validation errors ─────────────────────────────────────
+    # Patterns that lib.migrate can fix automatically (code-safe, no human judgment needed).
+    _MIGRATE_HINTS = ("run 'python -m lib.migrate' to upgrade", "unknown phase:")
+    migrate_fixable = [e for e in d.validation_errors if any(h in e for h in _MIGRATE_HINTS)]
+    non_migrate = [e for e in d.validation_errors if not any(h in e for h in _MIGRATE_HINTS)]
+
+    if d.validation_errors:
+        if migrate_fixable:
+            # Migrate can resolve schema_version / project_type / unknown-phase errors
+            # without human judgment — emit as code step so autonomous-reel can run it.
+            steps.append(RepairStep(
+                order=order,
+                actor="code",
+                description=(
+                    f"Run migration to fix {len(migrate_fixable)} auto-fixable error(s) "
+                    f"(schema_version, project_type, or unknown phase)"
+                ),
+                command=f"PYTHONPATH=. python -m lib.migrate projects/{d.slug}",
+                gate_target=None,
+                why=(
+                    "lib.migrate safely adds schema_version and project_type and maps "
+                    "unknown phase values to the current canonical set. "
+                    "Run this before manual fixes."
+                ),
+                files_to_inspect=["project.json"],
+                specialist_agent=None,
+            ))
+            order += 1
+
+        human_count = len(non_migrate) if migrate_fixable else len(d.validation_errors)
+        if non_migrate or not migrate_fixable:
+            steps.append(RepairStep(
+                order=order,
+                actor="human",
+                description=(
+                    f"Fix {human_count} project.json validation error(s)"
+                    + (" remaining after migration" if migrate_fixable and non_migrate else "")
+                ),
+                command=f"PYTHONPATH=. python -m lib.validate projects/{d.slug}",
+                gate_target=None,
+                why=(
+                    "Validation errors block all downstream phases — "
+                    "every other repair step depends on a valid project.json."
+                ),
+                files_to_inspect=["project.json"],
+                specialist_agent=None,
+            ))
+            order += 1
+
+        errors_to_show = d.validation_errors[:3]
+        for err in errors_to_show:
             steps.append(RepairStep(
                 order=order,
                 actor="human",

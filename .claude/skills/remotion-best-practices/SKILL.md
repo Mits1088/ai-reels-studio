@@ -53,6 +53,35 @@ const containerHeight = "60%";                          // not "height"
 
 ---
 
+## Determinism — Math.random() is banned
+
+Remotion renders frame-by-frame, deterministically. Frame 45 must look identical every time it is rendered. `Math.random()` returns a different value on every call — any component that uses it will flicker between render passes and cannot be reproduced.
+
+**Banned:**
+```tsx
+// WRONG — different value every render pass, causes flickering
+const x = Math.random() * 200;
+const offset = Math.random();
+```
+
+**Required — use `random()` from remotion with a static seed string:**
+```tsx
+import { random } from 'remotion';
+
+// Correct — same value every frame, every render
+const x = random('blob-x-0') * 200;
+const offset = random('particle-3-offset');
+```
+
+Seed string rules:
+- Must be a string literal, not a variable — `random('blob-0')` not `random(id)`
+- Different elements need different seed strings — `random('blob-0')`, `random('blob-1')`, etc.
+- Seeds can include index: `random(\`star-\${i}\`)` is fine — the template string is evaluated once, not per-frame
+
+This applies to: particle positions, noise animations, jitter effects, staggered delays, any "random-looking" layout. If the value varies, it needs a seed.
+
+---
+
 ## Constants-first design
 
 Extract ALL magic numbers and strings to named constants at the top of the component body, before any hooks or logic. Group by category.
@@ -390,7 +419,10 @@ useEffect(() => { ... }, [frame]);
 // CORRECT — frame-driven animation
 const frame = useCurrentFrame();
 const { fps } = useVideoConfig();
-const opacity = interpolate(frame, [0, 10], [0, 1], { extrapolateRight: "clamp" });
+const opacity = interpolate(frame, [0, 10], [0, 1], {
+  extrapolateLeft: "clamp",   // prevents negative values during premountFor frames
+  extrapolateRight: "clamp",
+});
 const scale = spring({ frame, fps, config: { damping: 14, stiffness: 200 } });
 
 // CORRECT — Remotion image component
@@ -398,6 +430,8 @@ import { Img, staticFile } from "remotion";
 <Img src={staticFile("logo.svg")} />
 
 // CORRECT — video playback (always muted in splits)
+// Use OffthreadVideo, not <Video> — OffthreadVideo uses Remotion's frame-extraction
+// mechanism (not the browser's video element) for frame-accurate seeking at render time.
 import { OffthreadVideo, staticFile } from "remotion";
 <OffthreadVideo src={staticFile("demo.mp4")} muted />
 ```
@@ -423,7 +457,10 @@ import { OffthreadVideo, staticFile } from "remotion";
 
 // Short clips need proportional fade durations — fixed durations crash interpolate
 const safeEnterDur = Math.min(15, Math.floor(durationInFrames * 0.3));
-const opacity = interpolate(frame, [0, safeEnterDur], [0, 1], { extrapolateRight: "clamp" });
+const opacity = interpolate(frame, [0, safeEnterDur], [0, 1], {
+  extrapolateLeft: "clamp",
+  extrapolateRight: "clamp",
+});
 ```
 
 **Short clip rule:** For any clip < 30 frames, always calculate fade duration proportionally. A fixed `enterDur: 10` on a 5-frame clip causes `inputRange must be strictly monotonically increasing` errors.

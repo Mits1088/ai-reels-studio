@@ -7,7 +7,7 @@ Usage:
     python -m lib.brain diagnose projects/<slug> --json --out diagnosis.json
 
     python -m lib.brain advance  projects/<slug>
-    python -m lib.brain advance  projects/<slug> --dry-run
+    python -m lib.brain advance  projects/<slug> --execute
 
     python -m lib.brain repair   projects/<slug>
 

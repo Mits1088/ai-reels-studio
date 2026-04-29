@@ -45,7 +45,15 @@ export interface TimelineEntry {
   };
   zoom_moments?: ZoomMoment[];
   volume?: number;
-  display?: "responsive" | "center-full" | "guided-demo" | "hook-reveal" | "bg" | "image-grid" | "scroll-image";
+  display?: "responsive" | "center-full" | "guided-demo" | "hook-reveal" | "bg" | "image-grid" | "scroll-image" | "app-window";
+  /** Config for display:"app-window" — wraps the asset in macOS browser chrome */
+  appWindow?: {
+    platform?: "macos" | "chrome";
+    theme?: "light" | "dark";
+    url?: string;
+    title?: string;
+    showUrlBar?: boolean;
+  };
   /** ImageGrid2x2 image list — required when display is "image-grid" */
   images?: Array<{ src: string }>;
   /** ScrollImage source aspect ratio (width/height) — required when display is "scroll-image" */

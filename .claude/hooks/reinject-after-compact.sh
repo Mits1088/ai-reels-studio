@@ -67,6 +67,6 @@ else:
     print(f'  ✗  Blocked — run: PYTHONPATH=. python -m lib.validate $PROJECT_DIR')
 if stale:
     print(f'  ⚠  {len(stale)} high-confidence staleness signal(s) detected')
-" <<< "\$DIAG" 2>/dev/null
+" <<< "$DIAG" 2>/dev/null
 
 exit 0
